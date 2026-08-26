@@ -889,8 +889,8 @@ function AccountVerificationModal({
                 {/hourly window/i.test(error) && (
                   <span>
                     Supabase’s built-in test mailer allows only two messages per
-                    hour. An older link may still work; otherwise wait and try
-                    once more.
+                    hour. Wait for the limit to reset, then request one fresh
+                    link.
                   </span>
                 )}
               </div>
