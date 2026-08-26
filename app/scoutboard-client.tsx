@@ -38,7 +38,7 @@ function createAgentInvitePrompt(origin:string,status:WebMCPRuntimeStatus){
     'Working rules:',
     '- Use Zingposts as our durable source of truth for listings, boards, alerts, research, drafts, decisions, and activity.',
     '- You may search, compare, organize, research, monitor, and prepare drafts autonomously through the available tools.',
-    '- Never publish a listing, contact another person, submit or respond to an offer, or invite a trade participant unless Zingposts presents the exact action to me for verification and one-time human approval.',
+    '- Never publish a listing, change the public presentation of a live listing, contact another person, submit or respond to an offer, or invite a trade participant unless Zingposts presents the exact action to me for verification and one-time human approval.',
     '- If you support reusable skills or scheduled work, offer to save a small Zingposts routine that reopens the site, repeats this preflight, rediscovers tools, checks alerts and attention items, and reports changes. Never assume a tab or cached tool catalog remains connected.'
   ].join('\n');
 }
@@ -88,7 +88,7 @@ const toolDefinitions=[
   ['refresh_listing_status','Check the latest known availability and source authority.',{listingId:'string'}],
   ['list_my_listings','List native and tracked listings owned by the signed-in user, including unpublished drafts.',{status:'string'}],
   ['create_listing_draft','Create an unpublished native Zingposts listing for the signed-in seller.',{title:'string',year:'number',make:'string',model:'string',category:'string',price:'number',location:'string',description:'string',condition:'string'}],
-  ['attach_listing_image_from_url','Import a permitted public HTTPS image into private Zingposts storage and attach it to an owned unpublished listing draft with source and alt-text metadata.',{listingId:'string',sourceUrl:'string',sourceLabel:'string',altText:'string'}],
+  ['attach_listing_image_from_url','Import a permitted public HTTPS image into private Zingposts storage with source and alt-text metadata. Drafts update immediately; changing a live listing waits for verified human approval.',{listingId:'string',sourceUrl:'string',sourceLabel:'string',altText:'string'}],
   ['update_listing_draft','Update a listing owned by the current user.',{listingId:'string',title:'string',price:'number',description:'string'}],
   ['request_listing_publish','Request human confirmation before publishing a native listing.',{listingId:'string'}],
   ['update_listing_price','Update the price of a listing owned by the current user.',{listingId:'string',price:'number'}],
@@ -190,7 +190,7 @@ function schemaFrom(toolName:string,fields:Record<string,string>){ const propert
 
 const READ_ONLY_TOOLS=new Set(['get_site_capabilities','get_webmcp_manifest','get_connection_guide','get_auth_status','get_verification_status','get_interface_preferences','get_marketplace_view','get_workspace_setup_status','get_workspace_overview','get_onboarding_status','get_agent_permissions','get_listing','get_listing_snapshot','list_my_listings','list_saved_items','list_boards','list_alerts','get_listing_research','list_conversations','list_trade_rooms','list_collaboration_sessions','get_conversation','get_collaboration_session','get_human_attention_queue','search_marketplace','interpret_alert','preview_alert_matches','find_possible_duplicates','compare_listings','refresh_listing_status','list_listing_changes','calculate_total_acquisition_cost','list_listing_conversations','summarize_conversation','summarize_buyer_interest','evaluate_trade_scenarios','list_recent_agent_actions']);
 const UNTRUSTED_OUTPUT_TOOLS=new Set(['get_workspace_overview','search_marketplace','get_listing','get_listing_snapshot','list_my_listings','list_saved_items','list_boards','list_alerts','get_listing_research','list_conversations','get_conversation','summarize_conversation','list_trade_rooms','list_collaboration_sessions','get_collaboration_session','get_human_attention_queue','list_listing_conversations','summarize_buyer_interest','list_recent_agent_actions']);
-const CONSEQUENTIAL_TOOLS=new Set(['request_listing_publish','request_message_send','request_offer_submit','respond_to_offer','request_trade_invitation']);
+const CONSEQUENTIAL_TOOLS=new Set(['request_listing_publish','attach_listing_image_from_url','request_message_send','request_offer_submit','respond_to_offer','request_trade_invitation']);
 const DESTRUCTIVE_TOOLS=new Set(['revoke_agent','archive_listing','unsave_listing','remove_listings_from_board','pause_alert']);
 const actionInput=(action:string,input:Row)=>READ_ONLY_TOOLS.has(action)||input.idempotencyKey?input:{...input,idempotencyKey:crypto.randomUUID()};
 
@@ -252,7 +252,7 @@ export default function ZingpostsClient(){
   const signOut=async()=>{const response=await fetch('/api/session',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({mode:'logout',returnTo:'/'})});const body=await response.json() as {redirect?:string};if(body.redirect){window.location.href=body.redirect;return;}setAccountOpen(false);await load();};
   const updateMarketplaceView=(next:Row)=>{if(next.mode)setViewMode(next.mode);if(typeof next.filtersExpanded==='boolean')setFiltersExpanded(next.filtersExpanded);if(next.category)setCategory(next.category);act('set_marketplace_view',next,'Canvas updated.');};
   const dropOnBoard=(boardId:string,listingId:string)=>{setDraggingId(null);act('add_listings_to_board',{boardId,listingIds:[listingId],notes:'Added from marketplace canvas.'},'Added to board.');};
-  const pendingConfirmation=state.confirmations.find(c=>c.status==='pending'); const verificationActions=['request_listing_publish','request_message_send','request_offer_submit','respond_to_offer','request_trade_invitation']; const needsVerification=Boolean(pendingConfirmation&&verificationActions.includes(pendingConfirmation.action)&&state.verification.status!=='verified');
+  const pendingConfirmation=state.confirmations.find(c=>c.status==='pending'); const verificationActions=['request_listing_publish','attach_listing_image_from_url','request_message_send','request_offer_submit','respond_to_offer','request_trade_invitation']; const needsVerification=Boolean(pendingConfirmation&&verificationActions.includes(pendingConfirmation.action)&&state.verification.status!=='verified');
   return <main className="app-shell">
     {state.pendingSetup?.found&&['awaiting_user','awaiting_approval'].includes(state.pendingSetup.status)&&<PendingAgentSetup setup={state.pendingSetup} dismiss={()=>{window.history.replaceState({},'',window.location.pathname);load();}}/>}
     <div className={`workspace ${sidebarCollapsed?'nav-collapsed':''} ${draggingId?'drag-active':''}`}>

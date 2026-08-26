@@ -30,7 +30,7 @@ The same state remains legible and editable in the human interface. Reasoning st
 - Native marketplace with 12 seeded listings and original project-owned imagery
 - Buyer and seller workspaces
 - Listing photo uploads backed by private Supabase Storage
-- Agent image ingestion from permitted public HTTPS sources, copied into private Supabase Storage with attribution and alt text while a listing remains an unpublished draft
+- Agent image ingestion from permitted public HTTPS sources, copied into private Supabase Storage with attribution and alt text; unpublished drafts update seamlessly while live-listing media changes wait for verified human approval
 - External-listing tracking with source-authority warnings
 - Boards, saved items, alerts, research, messages, offers, and multi-party trade rooms
 - A canvas-first marketplace whose collapsible left rail contains search, listing actions, filters, view modes, navigation, and persistent board drop targets
@@ -84,7 +84,7 @@ The bottom-right guide inspects the active tab rather than assuming WebMCP is co
 
 `get_webmcp_manifest` organizes the catalog into views, queries, actions, and workflows. `get_workspace_overview` routes a returning agent to explicit inventory tools instead of requiring it to remember identifiers from an earlier tab. `get_marketplace_view` and `set_marketplace_view` let a scoped outside agent coordinate the same gallery, focus, or thumbnail canvas the person sees. People can drag a gallery card, focus image, or thumbnail directly onto a board in the left rail; `add_listings_to_board` is the agent’s deterministic equivalent.
 
-For selling, `list_my_listings` exposes unpublished drafts and `attach_listing_image_from_url` safely imports a user-permitted public image into the listing-media bucket, preserving source, attribution, accessible alt text, and an undo record. The tool is intentionally limited to owned unpublished drafts so an agent cannot silently change the public presentation of a live listing.
+For selling, `list_my_listings` exposes unpublished drafts and `attach_listing_image_from_url` safely imports a user-permitted public image into the listing-media bucket, preserving source, attribution, accessible alt text, and an undo record. Owned drafts update immediately; the same tool converts a live-listing media change into an exact verification and one-time human-approval request so an agent cannot silently alter the public presentation.
 
 The collaboration group is the showcase loop: `start_collaboration_session` opens shared work, `add_collaboration_item` places a structured shortlist, question, recommendation, decision, or note on the canvas, `respond_to_collaboration_item` records human guidance, and `get_collaboration_session` lets the outside agent resume with that guidance. `get_human_attention_queue` keeps ordinary collaboration questions and consequential marketplace actions visible in one place. A clearly labeled sample handoff lets a judge experience the same durable records without pretending Zingposts contains a model.
 
