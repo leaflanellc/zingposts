@@ -36,6 +36,7 @@ The same state remains legible and editable in the human interface. Reasoning st
 - Drag-to-board organization for people, with a click-to-board fallback for touch and accessibility, plus equivalent structured board actions for agents
 - Person-first and agent-first onboarding with replayable local sign-out
 - A single **Bring my agent** button that copies a complete connection-and-start prompt for the user’s chosen outside agent
+- A small contextual **WebMCP tools** guide that shows the tools useful on the current page first and keeps other page groups one click away
 - Scoped, revocable agent profiles and preferences
 - 85 declarative WebMCP tools registered on `document.modelContext` and `navigator.modelContext`
 - Immediate safe-lane agent connection for discovery, organization, research, alerts, and drafts

@@ -45,7 +45,7 @@ Show the unified attention queue, then open **Review exact action**. Point out w
 
 ## 2:05–2:28 — Trustworthy agent ergonomics
 
-Show **Activity & undo** and undo one reversible agent action. Keep the technical tool map out of the main human flow; it remains available directly at `/agents` for judges who want to inspect it.
+Open the small **WebMCP tools** guide in the bottom-right corner. Show that it leads with tools relevant to the current page and keeps other page groups collapsed. Then show **Activity & undo** and undo one reversible agent action. The complete technical map remains available from the guide for judges who want it.
 
 “The 85 tools are grouped by views, queries, actions, collaboration, and workflows. Mutations support idempotency, safe actions support dry runs, failures are structured, and every result returns a stable place in the human interface.”
 

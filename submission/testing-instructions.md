@@ -27,6 +27,7 @@
 - Confirm search, **Sell an item**, **Track a find**, filters, **Gallery / Focus / Thumbnails**, navigation, and boards all live in the collapsible left rail, leaving the rest of the viewport to the item canvas.
 - Drag a gallery card, the Focus image, and a thumbnail directly onto a board in the left rail; verify the board count increments. Also verify the **+ Board** fallback.
 - Ask the agent to call `set_marketplace_view`, then verify the human-visible canvas changes to the requested mode.
+- Open the bottom-right **WebMCP tools** guide on Browse, a listing detail, Alerts, and Shared with agent. Verify that the useful-here group changes with the page, other page groups remain available, and the full technical map link opens `/agents`.
 - Ask the agent to search, compare, create a board, and add research; verify that the UI updates to the same durable records.
 - Ask it to draft a message or offer; verify that sending/submission first asks the signed-in person to verify, then requires a separate human confirmation. An agent call with `confirmed: true` must remain blocked.
 - Click **Bring my agent** and verify the copied prompt instructs the agent to reopen Zingposts, rediscover tools, connect, inspect durable state, begin shared work, and preserve the human approval boundary.
