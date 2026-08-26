@@ -1,6 +1,7 @@
 name: Verify Zingposts
 
 on:
+  workflow_dispatch:
   pull_request:
   push:
     branches: [main]
