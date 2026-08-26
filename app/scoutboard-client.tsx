@@ -173,6 +173,8 @@ function webmcpContextId(view:string,detailOpen:boolean){return detailOpen?'list
 function contextualToolNames(contextId:string){const group=WEBMCP_PAGE_GROUPS.find(item=>item.id===contextId)??WEBMCP_PAGE_GROUPS[0];return new Set<string>([...GLOBAL_WEBMCP_TOOLS,...group.tools])}
 let webmcpRegistrationQueue:Promise<void>=Promise.resolve();
 function enqueueWebMCPRegistration(task:()=>Promise<void>){const next=webmcpRegistrationQueue.catch(()=>{}).then(task);webmcpRegistrationQueue=next.catch(()=>{});return next}
+let webmcpRegisteredToolNames=new Set<string>();
+let currentWebMCPCall:((name:string,input?:Row)=>Promise<unknown>)|null=null;
 const MARKETPLACE_CATEGORIES=['All','Cars & trucks','Boats','Campers','Machinery','Motorcycles'];
 const CLIENT_SEARCH_SYNONYMS:Record<string,string[]>={boat:['boat','boats','watercraft'],boats:['boat','boats','watercraft'],truck:['truck','trucks','pickup','4x4','4×4'],trucks:['truck','trucks','pickup','4x4','4×4'],watercraft:['boat','boats','watercraft'],'4x4':['4x4','4×4','four wheel drive'],camper:['camper','campers','rv','airstream']};
 
@@ -224,29 +226,39 @@ export default function ZingpostsClient(){
   useEffect(()=>{
     if(authenticated===undefined) return; let cancelled=false; const contextId=webmcpContextId(view,detailOpen); const activeNames=authenticated?contextualToolNames(contextId):publicToolNames; const available=toolDefinitions.filter(([name])=>activeNames.has(name));
     const call=async(name:string,input:Row={})=>{ setAgentPulse({name,status:'working',startedAt:Date.now()}); const effectiveInput=['get_webmcp_manifest','get_capability_index'].includes(name)?{...input,currentContext:contextId}:input; const result=await postAction(name,effectiveInput,{type:'agent',name:'Connected WebMCP agent'}); if(name==='navigate_to_workspace'&&result?.path){setTimeout(()=>{setView(String(result.view??'browse'));setSelectedSessionId(String(result.sessionId??''));if(result.listingId)setSelectedId(String(result.listingId));setDetailTab(result.hash==='#research'?'research':'overview');setDetailOpen(Boolean(result.detailOpen));setModal(null);window.history.pushState({},'',String(result.path));},0);}else await load(); setAgentPulse({name,status:'complete',startedAt:Date.now()}); setTimeout(()=>setAgentPulse(null),2800); window.dispatchEvent(new CustomEvent('zingposts:tool-result',{detail:{name,input:effectiveInput,result}})); return result; };
+    currentWebMCPCall=call;
     (window as any).__zingpostsWebMCP={listTools:()=>available.map(([name,description])=>({name,description})),callTool:call};
     const candidates=[{name:'navigator.modelContext',context:(navigator as any).modelContext},{name:'document.modelContext',context:(document as any).modelContext}].filter(item=>Boolean(item.context));
     const contexts=candidates.filter((item,index)=>candidates.findIndex(candidate=>candidate.context===item.context)===index);
     const supportedContexts=contexts.filter(item=>typeof item.context.registerTool==='function');
-    setWebmcpStatus({checked:true,supported:supportedContexts.length>0,surfaces:contexts.map(item=>item.name),availableTools:available.length,registeredToolNames:[],failedToolNames:[]});
+    const previouslyRegistered=[...webmcpRegisteredToolNames].filter(name=>activeNames.has(name));
+    setWebmcpStatus({checked:true,supported:supportedContexts.length>0,surfaces:contexts.map(item=>item.name),availableTools:available.length,registeredToolNames:previouslyRegistered,failedToolNames:[]});
     const register=async()=>{
-      const registered=new Set<string>(); const failed=new Set<string>();
+      if(cancelled)return; const registered=new Set(webmcpRegisteredToolNames); const failed=new Set<string>();
+      for(const name of [...registered]){
+        if(activeNames.has(name))continue;
+        for(const {context} of supportedContexts)try{await Promise.resolve(context.unregisterTool?.(name));}catch{}
+        registered.delete(name);
+      }
       for(const [name,description,fields] of available){
-        if(cancelled) break; let toolRegistered=false;
+        if(cancelled) break;
+        if(registered.has(name))continue;
+        let toolRegistered=false;
         for(const {context} of supportedContexts){
           try{
             await Promise.resolve(context.unregisterTool?.(name));
-            await Promise.resolve(context.registerTool({name,description,inputSchema:schemaFrom(name,fields as Record<string,string>),annotations:{readOnlyHint:READ_ONLY_TOOLS.has(name),untrustedContentHint:UNTRUSTED_OUTPUT_TOOLS.has(name),destructiveHint:DESTRUCTIVE_TOOLS.has(name)},execute:(input:Row)=>call(name,input)}));
+            await Promise.resolve(context.registerTool({name,description,inputSchema:schemaFrom(name,fields as Record<string,string>),annotations:{readOnlyHint:READ_ONLY_TOOLS.has(name),untrustedContentHint:UNTRUSTED_OUTPUT_TOOLS.has(name),destructiveHint:DESTRUCTIVE_TOOLS.has(name)},execute:(input:Row)=>currentWebMCPCall?.(name,input)}));
             if(cancelled){await Promise.resolve(context.unregisterTool?.(name));break;}
             toolRegistered=true;
           }catch(error){console.warn(`WebMCP tool ${name} could not register`,error);}
         }
         if(toolRegistered)registered.add(name);else if(supportedContexts.length)failed.add(name);
       }
-      if(!cancelled)setWebmcpStatus({checked:true,supported:supportedContexts.length>0,surfaces:contexts.map(item=>item.name),availableTools:available.length,registeredToolNames:[...registered],failedToolNames:[...failed]});
+      webmcpRegisteredToolNames=registered;
+      if(!cancelled)setWebmcpStatus({checked:true,supported:supportedContexts.length>0,surfaces:contexts.map(item=>item.name),availableTools:available.length,registeredToolNames:[...registered].filter(name=>activeNames.has(name)),failedToolNames:[...failed]});
     };
     void enqueueWebMCPRegistration(register);
-    return()=>{cancelled=true;void enqueueWebMCPRegistration(async()=>{for(const {context} of supportedContexts)for(const [name] of available)try{await Promise.resolve(context.unregisterTool?.(name));}catch{}})};
+    return()=>{cancelled=true};
   },[authenticated,load,view,detailOpen]);
 
   useEffect(()=>{ if(!toast) return; const timer=setTimeout(()=>setToast(''),3200); return()=>clearTimeout(timer); },[toast]);
