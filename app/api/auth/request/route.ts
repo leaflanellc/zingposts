@@ -16,7 +16,16 @@ export async function POST(request:Request){
     console.info(JSON.stringify({event:'auth_link_requested',intent,callbackUrl}));
     return NextResponse.json({ok:true,email,intent,message:'Check your email for the secure sign-in link.'});
   }catch(error){
-    console.error(JSON.stringify({event:'auth_link_request_failed',message:error instanceof Error?error.message:'Unknown authentication request error'}));
-    return NextResponse.json({ok:false,error:error instanceof Error?error.message:'Unable to send the secure sign-in link.'},{status:400});
+    const message=error instanceof Error?error.message:'Unknown authentication request error';
+    const status=typeof error==='object'&&error!==null&&'status' in error&&Number(error.status)===429?429:400;
+    const rateLimited=status===429||/rate limit/i.test(message);
+    console.error(JSON.stringify({event:'auth_link_request_failed',reason:rateLimited?'rate_limited':'provider_error',status}));
+    return NextResponse.json({
+      ok:false,
+      code:rateLimited?'EMAIL_RATE_LIMITED':'AUTH_LINK_REQUEST_FAILED',
+      error:rateLimited
+        ? 'Email sending is temporarily limited. Wait for the current hourly window to reset, then request one fresh link. Zingposts will not send another link until you ask.'
+        : message,
+    },{status:rateLimited?429:status,headers:rateLimited?{'Retry-After':'3600'}:undefined});
   }
 }

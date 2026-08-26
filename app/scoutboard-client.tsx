@@ -806,7 +806,7 @@ function AccountVerificationModal({
           name: state.user.displayName,
         }),
       });
-      const body = (await response.json()) as { error?: string };
+      const body = (await response.json()) as { error?: string; code?: string };
       if (!response.ok)
         throw new Error(
           body.error ?? "Unable to send the secure verification link.",
@@ -884,9 +884,16 @@ function AccountVerificationModal({
               />
             </label>
             {error && (
-              <p className="form-error" role="alert">
-                {error}
-              </p>
+              <div className="form-error" role="alert">
+                <b>{error}</b>
+                {/hourly window/i.test(error) && (
+                  <span>
+                    Supabase’s built-in test mailer allows only two messages per
+                    hour. An older link may still work; otherwise wait and try
+                    once more.
+                  </span>
+                )}
+              </div>
             )}
             <button
               data-testid="verification-submit"
