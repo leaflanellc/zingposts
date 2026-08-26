@@ -36,7 +36,7 @@ The same state remains legible and editable in the human interface. Reasoning st
 - Drag-to-board organization for people, with a click-to-board fallback for touch and accessibility, plus equivalent structured board actions for agents
 - Person-first and agent-first onboarding with replayable local sign-out
 - A single **Bring my agent** button that copies a complete connection-and-start prompt for the user’s chosen outside agent
-- A small contextual **WebMCP tools** guide that shows the tools useful on the current page first and keeps other page groups one click away
+- A small contextual **WebMCP tools** guide that reports live browser readiness and successful registration, reflects signed-in versus public availability, shows the tools useful on the current page first, and keeps other page groups one click away
 - Scoped, revocable agent profiles and preferences
 - 85 declarative WebMCP tools registered on `document.modelContext` and `navigator.modelContext`
 - Immediate safe-lane agent connection for discovery, organization, research, alerts, and drafts
@@ -76,6 +76,8 @@ The smoke test checks seeded persistence, authentication status, the WebMCP cata
 ## WebMCP implementation
 
 The browser registration lives in `app/scoutboard-client.tsx`. Each capability has a distinct name, description, JSON input schema, safety annotation, and executor. An authenticated page exposes the full catalog; a signed-out page exposes eleven public discovery and onboarding tools. Tool execution dispatches to the same durable action layer used by the human UI.
+
+The bottom-right guide inspects the active tab rather than assuming WebMCP is configured. It reports whether a usable `modelContext` surface is present, counts successfully registered tools, and shows setup guidance when the browser API is unavailable. The guide is visible before sign-in as well as inside the workspace, and labels tools as ready, login-locked, read-only, state-changing, or separately approval-gated. It deliberately does not claim that an outside agent is connected: a web page can verify its browser registration surface, while agent access to the tab remains the responsibility of the user-selected agent runtime.
 
 `get_webmcp_manifest` organizes the catalog into views, queries, actions, and workflows. `get_marketplace_view` and `set_marketplace_view` let a scoped outside agent coordinate the same gallery, focus, or thumbnail canvas the person sees. People can drag a gallery card, focus image, or thumbnail directly onto a board in the left rail; `add_listings_to_board` is the agent’s deterministic equivalent.
 
