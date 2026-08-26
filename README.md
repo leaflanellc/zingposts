@@ -48,6 +48,7 @@ The same state remains legible and editable in the human interface. Reasoning st
 - Durable interface preferences, including a collapsible navigation rail, full-screen sequential listing review, and agent-controllable marketplace canvas modes
 - Resumable workspace inventory tools for owned drafts, boards, saved items, alerts, research notebooks, collaboration sessions, conversations, and trade rooms
 - Required-field JSON schemas and `untrustedContentHint` annotations for tools that return marketplace or user-authored content
+- Private draft, board, trade-room, conversation, and tag data scoped to the signed-in workspace rather than leaking through shared marketplace records
 - Human confirmation tray for consequential actions
 - Attributed activity ledger and undo
 - Responsive desktop and mobile experience
