@@ -16,9 +16,11 @@ Zingposts is a complete peer-to-peer marketplace and durable workspace for inter
 
 People can browse realistic native inventory, create and publish listings, upload photos, save finds, build boards, set alerts, keep research notebooks, message sellers, prepare offers, and create structured multi-party trade rooms. Outside finds can be tracked without confusing them with Zingposts-owned inventory.
 
-A connected outside agent receives 78 structured WebMCP tools. It can search with compound criteria, compare candidates, organize boards, tag and rank finds, record cited research and inspection risks, monitor price changes, draft communications and offers, calculate acquisition cost, propose trade scenarios, and coordinate the shared gallery, focus, or thumbnail canvas. The human uses the same structure through a canvas-first interface: search, filters, views, actions, and board drop targets live in one collapsible rail. Zingposts itself contains no LLM.
+A connected outside agent receives 85 structured WebMCP tools. It can search with compound criteria, compare candidates, organize boards, tag and rank finds, record cited research and inspection risks, monitor price changes, draft communications and offers, calculate acquisition cost, propose trade scenarios, and coordinate the shared gallery, focus, or thumbnail canvas. The human uses the same structure through a canvas-first interface: search, filters, views, actions, and board drop targets live in one collapsible rail. Zingposts itself contains no LLM.
 
-Either side can arrive first. A person can sign in and let their agent connect immediately for safe work from the authenticated page. Or an unauthenticated agent can inspect ten public tools, including a grouped capability manifest, begin public discovery, and hand the user a sign-in link that automatically attaches its safe workspace profile. Verification and explicit human approval become mandatory only when an action publishes inventory or reaches another marketplace participant.
+The centerpiece is the Agent Workbench: an outside agent opens a durable session, places a shortlist, recommendation, or focused question on the shared canvas, and pauses only when human judgment matters. The person can inspect the exact listings and rationale, choose an option or add context, and return structured guidance. The agent reads that durable response on its next tool call and continues. This is turn-taking over shared marketplace objects, not a chatbot transcript.
+
+Either side can arrive first. A person can sign in and let their agent connect immediately for safe work from the authenticated page. Or an unauthenticated agent can inspect eleven public tools, including a grouped capability manifest and natural-language alert interpretation, begin public discovery, and hand the user a sign-in link that automatically attaches its safe workspace profile. Verification and explicit human approval become mandatory only when an action publishes inventory or reaches another marketplace participant.
 
 The human remains in control. Publishing, enabling notifications, sending a message, submitting or responding to an offer, and inviting a trade participant stop at a visible confirmation gate. Every human and agent action is attributed, and reversible work can be undone.
 
@@ -32,11 +34,11 @@ That makes the product meaningfully better with an agent—not merely automatabl
 
 ## How we built it
 
-Zingposts uses React 19 and Next.js on Netlify. Supabase Postgres holds marketplace and workflow state, while Supabase Storage holds listing photos. Versioned SQL migrations define 18 persistent tables and keep direct browser access locked behind row-level security.
+Zingposts uses React 19 and Next.js on Netlify. Supabase Postgres holds marketplace and workflow state, while Supabase Storage holds listing photos. Versioned SQL migrations define 21 persistent tables and keep direct browser access locked behind row-level security.
 
-The browser client registers 78 declarative tools on the WebMCP `modelContext` surface. Each tool includes a distinct name, task-specific description, JSON input schema, and safety annotation. `get_webmcp_manifest` organizes them as views, queries, actions, and workflows so an agent does not need to reason over an undifferentiated catalog. Tool execution flows through the same server-side action layer as the human UI, with an explicit agent identity.
+The browser client registers 85 declarative tools on the WebMCP `modelContext` surface. Each tool includes a distinct name, task-specific description, JSON input schema, and safety annotation. `get_webmcp_manifest` organizes them as views, queries, actions, collaboration, and workflows so an agent does not need to reason over an undifferentiated catalog. Tool execution flows through the same server-side action layer as the human UI, with an explicit agent identity.
 
-The action layer enforces listing ownership, creates reviewable drafts, writes an activity event for every mutation, stores inverse operations for undo, and converts consequential operations into pending confirmation records. Agents connect immediately to a safe workspace lane rather than stopping at a pairing prompt. Account verification and a separate human confirmation are deferred until publishing or outbound buyer/seller activity is requested.
+The action layer enforces listing ownership, creates reviewable drafts, writes an activity event for every mutation, stores inverse operations for undo, supports idempotency keys and dry runs, returns stable deep links and structured errors, and converts consequential operations into pending confirmation records. Agents connect immediately to a safe workspace lane rather than stopping at a pairing prompt. Account verification and a separate human confirmation are deferred until publishing or outbound buyer/seller activity is requested.
 
 The marketplace is seeded with original project-owned imagery and realistic records so the full human-agent workflow is understandable immediately. WebMCP tool registration is page-scoped, while Zingposts durably stores connection profiles, scopes, alerts, boards, research, drafts, and audit history. A generated skill starter shows agents how to reconnect safely on future visits and scheduled monitoring runs.
 
@@ -49,8 +51,10 @@ We also designed external-listing tracking so provenance stays honest. Zingposts
 ## Accomplishments
 
 - A coherent marketplace, not a WebMCP proof of concept
-- 78 tools spanning onboarding, shared canvas views, discovery, organization, negotiation, and multi-party trade
-- Agent-first and person-first onboarding with ten safe public tools before sign-in
+- 85 tools spanning onboarding, shared work sessions, canvas views, discovery, organization, negotiation, and multi-party trade
+- Agent-first and person-first onboarding with eleven safe public tools before sign-in
+- Durable agent-to-human-to-agent turn-taking with a unified attention queue
+- Live agent activity, exact-payload approval, idempotency, dry runs, structured errors, and stable deep links
 - No built-in AI or model dependency
 - Agent authentication through revocable scopes rather than password sharing
 - Durable attribution, confirmations, and undo

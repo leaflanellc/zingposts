@@ -1,61 +1,61 @@
 # Zingposts demo script
 
-Target runtime: 2 minutes 30 seconds. Record with one outside agent connected to a WebMCP-capable browser.
+Target runtime: 2 minutes 40 seconds. Record with one outside agent connected to a WebMCP-capable browser.
 
-## 0:00–0:20 — A marketplace, not a chatbot
+## 0:00–0:18 — A marketplace, not a chatbot
 
-“I love looking for old cars, boats, and machinery, but the real problem starts after search: organizing finds, researching condition, watching changes, negotiating, and sometimes coordinating a trade.”
+“Finding an old boat is fun. The hard part is turning dozens of listings into a decision without losing the person’s taste and judgment.”
 
-Show that the left rail owns search, listing actions, filters, views, navigation, and board drop targets, leaving almost the entire viewport to the Browse canvas. Switch from Gallery to Focus, flip once, drag the focused item to a rail board, then open a native listing full-screen. Briefly open an outside listing and point out its source warning.
+Show the canvas-first Browse page. Search for `boat`, switch quickly through Gallery, Focus, and Thumbnails, and drag one listing onto a board in the left rail.
 
-“Zingposts owns this marketplace and its structured workflow. It contains no LLM and no built-in agent.”
+“Zingposts owns the listings and workflow. It has no LLM and no built-in agent. My outside agent gets a structured action surface through WebMCP.”
 
-## 0:20–0:50 — Agent arrives first
+## 0:18–0:42 — Either side can arrive first
 
-Log out to show the first-visit page.
+Log out and click **My agent is here first**.
 
-“Either side can arrive first. Before I sign in, my outside agent can discover ten public WebMCP tools, inspect the grouped capability manifest and public listings, and connect to the public lane immediately.”
+“Before I create a workspace, an agent can discover eleven public tools, search the marketplace, interpret an alert, and call `connect_agent` to prepare a private handoff. Or I can create the workspace first and connect my agent from inside.”
 
-Have the outside agent call `connect_agent` with a name. Show `connected_public` and `approvalRequired: false`, then open the returned handoff path.
+Show the four-step agent-first modal. Have the outside agent call `connect_agent`, then open the returned handoff path and create the workspace. Show that safe access attaches without a pairing-code ceremony.
 
-Sign in as the user. Show that the agent’s safe workspace profile attaches automatically without an approval click.
+## 0:42–1:32 — The shared workbench
 
-## 0:50–1:15 — Durable connection, page-scoped WebMCP
-
-Open **Agent access**.
-
-“The page supplies deterministic tools; my agent supplies the intelligence. WebMCP discovery belongs to the active page, so Zingposts does not pretend this is a permanent socket. It persists the safe agent profile, preferences, and shared workspace.”
-
-Show the active profile and click **Copy reconnect skill starter**. Briefly show the Open, Connect, Collaborate, Verify sequence.
-
-## 1:15–1:50 — Work together on the same objects
+Open **Agent workbench**.
 
 Ask the outside agent to:
 
-1. inspect `get_webmcp_manifest` and switch the shared canvas to Thumbnails;
-2. search for pre-1980 boats under $15,000;
-3. create a board and add the strongest four results;
-4. add a cited risk note to the Whaler;
-5. draft a seller message and offer;
-6. create a trade room.
+1. call `start_collaboration_session` with the objective “Choose a characterful old boat under $20,000”;
+2. search for boats and call `add_collaboration_item` with a three-listing recommendation, rationale, two or three options, and `requiresHumanResponse: true`.
 
-Show each result appear in Zingposts. Explain that the agent called typed WebMCP tools rather than guessing screen coordinates.
+As the tool calls execute, point out the live WebMCP activity pulse. Show the recommendation in the shared canvas with real listing cards.
 
-## 1:50–2:12 — Human control
+“This is not a chat transcript. The agent has placed structured work on a durable marketplace canvas. It knows exactly when my judgment is needed.”
 
-Show the confirmation tray.
+Choose an option and add one sentence of guidance. Then have the agent call `get_collaboration_session`.
 
-“The agent can prepare research, organization, messages, offers, and trades. It cannot publish, send, submit, invite, or pay without verified account state and a visible human decision.”
+Show that the returned result contains the exact human response and that the session moved from `waiting_human` to `waiting_agent`. Have the agent add a follow-up research note or update the session summary.
 
-Show the one-time verification prompt, then the separate review-and-confirm tray. Dismiss one request and approve another. Open **Messages & offers** to show the resulting state.
+## 1:32–2:05 — Prepare freely, commit carefully
 
-## 2:12–2:30 — Return and monitor
+Ask the agent to draft a seller message based on the chosen boat and request that it be sent.
 
-Open **Activity & undo** and undo one reversible agent action.
+“Inside the workspace, research, organization, alerts, and drafts stay fluid. At the marketplace edge, identity and intent matter.”
 
-“For future work, a local skill remembers how to reopen Zingposts and rediscover its tools. An automation can revisit saved alerts on a schedule. Zingposts keeps the durable records; the user’s agent keeps the reasoning.”
+Show the unified attention queue, then open **Review exact action**. Point out who prepared it, the recipient, the exact message, and the raw payload. Approve once or decline. Mention that an agent-supplied `confirmed: true` cannot bypass this gate.
 
-End on Browse with Zingposts visible.
+## 2:05–2:28 — Trustworthy agent ergonomics
+
+Briefly show **Agent access** and the grouped tool map.
+
+“The 85 tools are grouped by views, queries, actions, collaboration, and workflows. Mutations support idempotency, safe actions support dry runs, failures are structured, and every result returns a stable place in the human interface.”
+
+Show **Activity & undo** and undo one reversible agent action.
+
+## 2:28–2:40 — Close
+
+Return to the workbench.
+
+“The agent does the breadth. The person supplies taste, permission, and commitment. Zingposts gives both of them the same durable marketplace objects to work on together.”
 
 ## Recording checklist
 
@@ -63,6 +63,7 @@ End on Browse with Zingposts visible.
 - Keep the video public or unlisted on YouTube and under three minutes.
 - Record clear audio.
 - Start from the logged-out first-visit page.
-- Use a real outside agent for the WebMCP calls; do not imply Zingposts contains a model.
+- Use a real outside agent for the WebMCP calls; the clearly labeled sample handoff is only a fallback for judge exploration.
+- Do not imply Zingposts contains a model.
 - Avoid showing personal browser tabs, notifications, credentials, or private handoff links after the demo.
 - Confirm that the repository and live app links are in the video description.

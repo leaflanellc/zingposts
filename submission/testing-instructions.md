@@ -3,7 +3,7 @@
 ## Agent-first path
 
 1. Open `https://zingposts.com` in a WebMCP-capable browser while signed out.
-2. Ask your outside agent to inspect the available tools. It should find ten public tools.
+2. Ask your outside agent to inspect the available tools. It should find eleven public tools.
 3. Call `get_site_capabilities` and confirm `builtInAI: false`.
 4. Call `connect_agent` with an agent name. Confirm it returns `connected_public`, `approvalRequired: false`, and a handoff path.
 5. Open the returned `handoffPath` and sign in. The safe workspace profile should attach automatically without a scope-approval click.
@@ -20,6 +20,9 @@
 ## Collaboration checks
 
 - Call `get_webmcp_manifest` and verify the catalog is grouped into views, queries, actions, and workflows.
+- Open **Agent workbench** and click **Load a sample WebMCP handoff**. Verify that the sample is explicitly labeled, uses durable records, shows three real listings, and states that no AI runs inside Zingposts.
+- For the real loop, call `start_collaboration_session`, then `add_collaboration_item` with `requiresHumanResponse: true`. Respond in the workbench and call `get_collaboration_session`; verify the exact human decision and text are returned and the session moves to `waiting_agent`.
+- Call `get_human_attention_queue` before and after the response; verify the focused question enters and then leaves the queue.
 - Confirm search, **Sell an item**, **Track a find**, filters, **Gallery / Focus / Thumbnails**, navigation, and boards all live in the collapsible left rail, leaving the rest of the viewport to the item canvas.
 - Drag a gallery card, the Focus image, and a thumbnail directly onto a board in the left rail; verify the board count increments. Also verify the **+ Board** fallback.
 - Ask the agent to call `set_marketplace_view`, then verify the human-visible canvas changes to the requested mode.
@@ -57,4 +60,4 @@ npm run build
 
 ## Expected automated result
 
-The smoke test prints a JSON object with `ok: true`, at least 12 seeded listings, 78 WebMCP tools, immediate safe workspace connection, verified-human outbound gates, durable canvas preferences, grouped WebMCP organization, and `undoVerified: true`.
+The smoke test prints a JSON object with `ok: true`, at least 12 seeded listings, 85 WebMCP tools, eleven public tools, category-aware boat matches, a complete collaboration loop, immediate safe workspace connection, verified-human outbound gates, durable canvas preferences, grouped WebMCP organization, and `undoVerified: true`.
