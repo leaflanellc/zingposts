@@ -227,3 +227,125 @@ button,input { font:inherit; } button,a { -webkit-tap-highlight-color:transparen
 }
 
 .sidebar.collapsed .sidebar-toggle { width:28px; align-self:center; }
+
+/* Readability and workspace polish: keep the canvas dense without making its controls microscopic. */
+body { font-size:14px; }
+.eyebrow { font-size:10px; }
+.nav-label,.rail-control-heading small { font-size:10px; }
+.nav-item { min-height:39px; font-size:13px; }
+.nav-item em { font-size:11px; }
+.sidebar-search input { font-size:12px; }
+.sidebar-create button { min-height:36px; font-size:10px; }
+.rail-control-heading button,.rail-filters button { font-size:10px; }
+.sidebar-agent strong { font-size:12px; }
+.sidebar-agent span { font-size:10px; line-height:1.35; }
+.canvas-context p { font-size:9px; }
+.canvas-context>span { font-size:10px; }
+
+.listing-title-row p { font-size:10px; }
+.listing-title-row h2 { font-size:14px; line-height:1.25; }
+.listing-title-row>strong { font-size:14px; }
+.listing-meta { font-size:11px; line-height:1.45; }
+.listing-footer { font-size:10px; }
+.fit-badge { font-size:10px; }
+.listing-board-badge b,.listing-board-more { font-size:9px; }
+.remove-board-item { font-size:10px; }
+
+.detail-back { font-size:12px; }
+.detail-progress small { font-size:9px; }
+.detail-progress b { font-size:11px; }
+.detail-media-caption { font-size:11px; }
+.detail-title>div>p:last-child { font-size:12px; }
+.detail-price span { font-size:10px; }
+.detail-content>.detail-tabs button { padding-block:15px 13px; font-size:13px; }
+.detail-scroll { padding:0 18px; }
+.detail-scroll .inspector-section { margin-inline:12px; padding-block:22px; }
+.detail-scroll .section-title h3 { font-size:14px; }
+.detail-scroll .section-title span,.detail-scroll .section-title button { font-size:10px; }
+.detail-scroll .detail-copy { font-size:13px; }
+.detail-scroll .fact-grid small { font-size:10px; }
+.detail-scroll .fact-grid b { font-size:12px; }
+.detail-scroll .assessment b { font-size:12px; }
+.detail-scroll .assessment p { font-size:11px; }
+.detail-actions button { font-size:12px; }
+.detail-screen .research-list article>b { font-size:12px; }
+.detail-screen .research-list article p { font-size:11px; }
+.detail-screen .research-list article small { font-size:10px; }
+.detail-screen .deal-stack button { font-size:12px; }
+
+/* Research is an evidence workspace, so its own controls replace the generic detail footer. */
+.detail-content:has(.price-workspace) .detail-actions { display:none; }
+.price-workspace { gap:14px; margin-top:16px!important; border:1px solid #e0ddd5; border-radius:14px; padding:18px!important; background:#fffefa; }
+.price-workspace .section-title div>p { margin-top:5px; font-size:11px; line-height:1.45; }
+.price-workspace .section-title>span { padding:5px 8px; font-size:9px; }
+.price-metrics { gap:10px; }
+.price-metrics>span { min-height:76px; justify-content:center; gap:7px; padding:13px; }
+.price-metrics small { font-size:9px; }
+.price-metrics b { font-size:19px; }
+.price-workspace-actions { gap:9px; }
+.price-workspace-actions button { min-height:40px; font-size:11px; }
+.price-agent-note { grid-template-columns:auto minmax(0,1fr); align-items:center; border:1px solid #dce5de; padding:9px 11px; background:#f4f7f4; font-size:10px; line-height:1.45; }
+.price-agent-note b { font-size:10px; }
+.price-agent-note code { font-size:9px; }
+.research-list .empty { min-height:150px; padding:28px 20px; }
+.research-list .empty b { font-size:14px; }
+.research-list .empty p { max-width:560px; margin:8px auto 0; font-size:11px; line-height:1.55; }
+
+.modal-copy { font-size:12px; line-height:1.55; }
+.modal label { font-size:11px; }
+.modal input,.modal select,.modal textarea { font-size:12px; }
+.modal form>.primary-action { font-size:12px; font-weight:700; }
+.modal.sign-in-modal .modal-copy { font-size:12px; }
+.modal.sign-in-modal label { font-size:11px; }
+.modal.sign-in-modal input { font-size:13px; }
+.modal.sign-in-modal form>.primary-action { font-size:12px; }
+.sign-in-trust p { font-size:10px; }
+.sign-in-trust b { font-size:11px; }
+
+.workbench-hero p { font-size:12px; }
+.workbench-loop span { font-size:10px; }
+.attention-queue header small,.workbench-canvas>header small,.workbench-item>header small { font-size:9px; }
+.attention-queue header>span,.attention-empty p { font-size:10px; }
+.attention-empty b,.attention-items b { font-size:11px; }
+.attention-items small,.attention-items em { font-size:9px; }
+.workbench-sessions h2 { font-size:12px; }
+.workbench-sessions button b { font-size:11px; }
+.workbench-sessions button small { font-size:9px; }
+.workbench-canvas>header p,.workbench-item>p { font-size:11px; }
+.workbench-canvas>header a { font-size:10px; }
+.session-context span { font-size:9px; }
+.workbench-item h3 { font-size:14px; }
+.workbench-item em { font-size:9px; }
+.workbench-listings b { font-size:10px; }
+.workbench-listings small { font-size:9px; }
+.workbench-options button,.workbench-response button,.workbench-response label { font-size:10px; }
+.human-response small { font-size:9px; }
+.human-response b,.human-response span,.human-response p { font-size:10px; }
+.workbench-zero p { font-size:12px; }
+.workbench-zero code { font-size:9px; }
+
+.webmcp-page-trigger b { font-size:11px; }
+.webmcp-page-trigger small { font-size:9px; }
+.webmcp-page-panel>header small { font-size:9px; }
+.webmcp-page-panel>p { font-size:11px; }
+.webmcp-runtime b,.webmcp-auth-state b,.webmcp-setup b { font-size:10px; }
+.webmcp-runtime span,.webmcp-auth-state span,.webmcp-setup p,.webmcp-setup code { font-size:9px; }
+.webmcp-current-tools code { font-size:10px; }
+.webmcp-current-tools span { font-size:9px; }
+.tool-flags em { font-size:7px; }
+.webmcp-progressive>b { font-size:10px; }
+.webmcp-progressive>p { font-size:9px; }
+.webmcp-progressive code,.webmcp-other-pages code { font-size:8px; }
+.webmcp-other-pages>summary,.webmcp-other-pages>div>details>summary { font-size:10px; }
+.webmcp-other-pages summary b,.webmcp-page-panel>footer { font-size:9px; }
+
+@media(max-width:980px){
+  .detail-actions { position:static; }
+  .price-workspace { margin-inline:0!important; }
+  .price-metrics { grid-template-columns:repeat(4,minmax(0,1fr)); }
+}
+
+@media(max-width:700px){
+  .price-metrics { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .price-workspace { border-inline:0; border-radius:0; padding-inline:18px!important; }
+}
