@@ -8,6 +8,8 @@ Official deadline: **September 3, 2026 at 1:00 p.m. PDT**.
 - [x] WebMCP registration and in-product verification console
 - [x] Realistic seeded data and project-owned imagery
 - [x] Supabase Postgres persistence and private Storage photo uploads
+- [x] Supabase human authentication, verified workspace migration, and production callback URLs
+- [x] Single-use expiring agent codes, hashed revocable sessions, and separate human/agent identity
 - [x] Scoped agent pairing, confirmation gates, activity, and undo
 - [x] Durable Agent Workbench with shared sessions, attention queue, human responses, and agent resumption
 - [x] Structured errors, idempotent mutations, dry runs, stable deep links, and exact-payload approval

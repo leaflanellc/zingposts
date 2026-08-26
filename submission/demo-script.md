@@ -10,15 +10,17 @@ Show the canvas-first Browse page. Search for `boat`, switch quickly through Gal
 
 “Zingposts owns the listings and workflow. It has no LLM and no built-in agent. My outside agent gets a structured action surface through WebMCP.”
 
-## 0:18–0:42 — One prompt, either arrival order
+## 0:18–0:48 — One prompt, either arrival order
 
 While signed in, click **Bring my agent**. Paste the copied prompt into the outside agent.
 
-“People should not have to understand MCP. One prompt tells my chosen agent to open Zingposts, discover the current tools, connect, inspect my workspace, and start useful work.”
+“People should not have to understand MCP. One prompt tells my chosen agent to open Zingposts, verify that its browser can use WebMCP, discover the current tools, authenticate, inspect my workspace, and start useful work.”
 
-Briefly mention the reverse path: while signed out, have the outside agent call `connect_agent`, then open the returned handoff path for the person. Show that the handoff is already waiting and safe access attaches without a pairing-code ceremony.
+Show the one-use, 10-minute agent code in the copied prompt and have the outside agent exchange it with `authenticate_agent`. Point out that the agent receives its own expiring, revocable session—never the person’s Supabase login.
 
-## 0:42–1:32 — The shared workbench
+Briefly mention the reverse path: while signed out, an outside agent can inspect the fifteen public tools, call `connect_agent`, and open the returned prototype handoff for the person. Prototype research and organization stay frictionless; a verified private workspace always requires a code issued by its person.
+
+## 0:48–1:32 — The shared workbench
 
 Open **Shared with agent**.
 
@@ -35,21 +37,21 @@ Choose an option and add one sentence of guidance. Then have the agent call `get
 
 Show that the returned result contains the exact human response and that the session moved from `waiting_human` to `waiting_agent`. Have the agent add a follow-up research note or update the session summary.
 
-## 1:32–2:05 — Prepare freely, commit carefully
+## 1:32–2:08 — Prepare freely, commit carefully
 
 Ask the agent to draft a seller message based on the chosen boat and request that it be sent.
 
-“Inside the workspace, research, organization, alerts, and drafts stay fluid. At the marketplace edge, identity and intent matter.”
+“Inside a prototype workspace, research, organization, alerts, and drafts stay fluid. The first real marketplace action asks me to replace a test email if needed and verify through Supabase. After that, both person and agent must authenticate independently.”
 
-Show the unified attention queue, then open **Review exact action**. Point out who prepared it, the recipient, the exact message, and the raw payload. Approve once or decline. Mention that an agent-supplied `confirmed: true` cannot bypass this gate.
+Show the unified attention queue, then open **Review exact action**. Point out who prepared it, the recipient, the exact message, and the raw payload. Approve once or decline. Mention that even an authenticated agent supplying `confirmed: true` cannot bypass this separate human gate.
 
-## 2:05–2:28 — Trustworthy agent ergonomics
+## 2:08–2:30 — Trustworthy agent ergonomics
 
 Open the small **WebMCP tools** guide in the bottom-right corner. Show that it leads with tools relevant to the current page and keeps other page groups collapsed. Then show **Activity & undo** and undo one reversible agent action. The complete technical map remains available from the guide for judges who want it.
 
-“The 85 tools are grouped by views, queries, actions, collaboration, and workflows. Mutations support idempotency, safe actions support dry runs, failures are structured, and every result returns a stable place in the human interface.”
+“The 103 tools use progressive discovery and are grouped by views, queries, actions, collaboration, and workflows. Mutations support idempotency, safe actions support dry runs, failures are structured, and every result returns a stable place in the human interface.”
 
-## 2:28–2:40 — Close
+## 2:30–2:40 — Close
 
 Return to **Shared with agent**.
 

@@ -12,14 +12,14 @@ Zingposts contains no LLM and no built-in agent. It provides deterministic marke
 
 Marketplace search is usually a pile of filters. The harder work happens afterward: keeping candidates organized, researching condition and provenance, watching price changes, following up, negotiating, and sometimes structuring a multi-party trade.
 
-Zingposts exposes that durable marketplace workspace as 101 structured WebMCP tools through a compact front door and page-specific contextual catalogs. A user can point a local agent at the site and ask it to:
+Zingposts exposes that durable marketplace workspace as 103 structured WebMCP tools through a compact front door and page-specific contextual catalogs. A user can point a local agent at the site and ask it to:
 
 - search native inventory and track outside finds;
 - organize listings into flexible boards, tags, statuses, and rankings;
 - build cited research notebooks, inspection checklists, comparables, and risk logs;
 - record structured sold comparables, calculate transparent price and all-in-cost ranges, and save a private offer strategy;
 - draft alerts, seller messages, negotiation plans, offers, and trade scenarios;
-- pair with revocable scopes instead of receiving the user's password;
+- exchange a user-issued, single-use code for a separate expiring and revocable session instead of receiving the user's login;
 - leave consequential actions—publication, notifications, messages, offers, and invitations—at an explicit human-confirmation gate;
 - make every action attributable and undo reversible work.
 - open a durable collaboration session, place a shortlist or focused question on the shared canvas, read the person’s response, and continue from it.
@@ -28,7 +28,7 @@ The same state remains legible and editable in the human interface. Reasoning st
 
 ## Product tour
 
-- Native marketplace with 12 seeded listings and original project-owned imagery
+- Native marketplace with 28 seeded listings and original project-owned imagery
 - Buyer and seller workspaces
 - Listing photo uploads backed by private Supabase Storage
 - Agent image ingestion from permitted public HTTPS sources, copied into private Supabase Storage with attribution and alt text; unpublished drafts update seamlessly while live-listing media changes wait for verified human approval
@@ -39,12 +39,14 @@ The same state remains legible and editable in the human interface. Reasoning st
 - Person-first and agent-first onboarding with replayable local sign-out
 - A single **Bring my agent** button that copies a compatibility preflight plus connection-and-start prompt for the user’s chosen outside agent; it distinguishes browser setup, missing agent-runtime support or tab permission, sign-in, and successful WebMCP connection
 - A small contextual **WebMCP tools** guide that reports live browser readiness and successful registration, reflects signed-in versus public availability, shows the tools useful on the current page first, and keeps other page groups one click away
+- Supabase email-code authentication for verified people, with an editable email when a prototype workspace crosses the marketplace boundary
+- Separate 10-minute, single-use agent codes and 12-hour revocable agent sessions for verified workspaces
 - Scoped, revocable agent profiles and preferences
-- 101 declarative WebMCP tools in the complete catalog, with a smaller relevant set registered for the current human-visible workspace
+- 103 declarative WebMCP tools in the complete catalog, with a smaller relevant set registered for the current human-visible workspace
 - Progressive discovery through `get_capability_index`, `get_capability_group`, and `navigate_to_workspace`
-- Immediate safe-lane agent connection for discovery, organization, research, alerts, and drafts
-- Deferred account verification plus human confirmation before publishing or contacting marketplace participants
-- Eleven public tools available before sign-in for discovery, the grouped WebMCP manifest, interpreted alerts, public search, and agent-first handoff
+- Immediate prototype-lane agent connection for discovery, organization, research, alerts, and drafts
+- A real verification boundary: Supabase authentication plus exact human confirmation before publishing or contacting marketplace participants
+- Fifteen public tools available before human sign-in for discovery, authentication, the grouped WebMCP manifest, interpreted alerts, public search, and agent-first handoff
 - A human-facing **Shared with agent** area for durable shortlists, recommendations, questions, human responses, and resumable work sessions
 - Live agent activity, structured errors, idempotent mutations, dry runs, exact-action review, and stable deep links
 - Durable interface preferences, including a collapsible navigation rail, full-screen sequential listing review, and agent-controllable marketplace canvas modes
@@ -74,14 +76,16 @@ With the development server running:
 npm run test:types
 npm run lint
 npm run test:smoke
-npm run build
+npm run build -- --webpack
 ```
 
-The smoke test checks seeded persistence, authentication status, the WebMCP catalog, category-aware search, interpreted alerts, resumable workspace inventories, agent-side listing image ingestion, idempotency, dry runs, agent-created organization, a full agent-question/human-response loop, verification and confirmation gates, interface preferences, the activity ledger, deep links, and undo. The onboarding tests additionally exercise anonymous public connection, automatic agent-first handoff attachment, and immediate person-first connection.
+With Supabase test credentials in the environment, `npm run test:human-auth` verifies that the legacy prototype cookie stops working after account upgrade and that a real Supabase session resumes the workspace. `npm run test:agent-auth` verifies single-use code exchange, server-derived agent identity, private workspace access, non-bypassable human approval, and immediate revocation.
+
+The smoke test checks seeded persistence, prototype authentication state, the WebMCP catalog, category-aware search, interpreted alerts, resumable workspace inventories, agent-side listing image ingestion, idempotency, dry runs, agent-created organization, a full agent-question/human-response loop, the non-bypassable verification and confirmation gates, interface preferences, the activity ledger, deep links, and undo. The onboarding tests additionally exercise anonymous public connection, agent-first handoff attachment, and person-first prototype connection.
 
 ## WebMCP implementation
 
-The browser registration lives in `app/scoutboard-client.tsx`. Each capability has a distinct name, description, JSON input schema, safety annotation, and executor. An authenticated page exposes the full catalog; a signed-out page exposes eleven public discovery and onboarding tools. Tool execution dispatches to the same durable action layer used by the human UI.
+The browser registration lives in `app/scoutboard-client.tsx`. Each capability has a distinct name, description, JSON input schema, safety annotation, and executor. An authenticated human or agent page exposes the full catalog; a signed-out page exposes fifteen public discovery, authentication, and onboarding tools. Tool execution dispatches to the same durable action layer used by the human UI.
 
 The bottom-right guide inspects the active tab rather than assuming WebMCP is configured. It reports whether a usable `modelContext` surface is present, counts successfully registered tools, and shows setup guidance when the browser API is unavailable. The guide is visible before sign-in as well as inside the workspace, and labels tools as ready, login-locked, read-only, state-changing, or separately approval-gated. It deliberately does not claim that an outside agent is connected: a web page can verify its browser registration surface, while agent access to the tab remains the responsibility of the user-selected agent runtime.
 
@@ -91,19 +95,20 @@ For selling, `list_my_listings` exposes unpublished drafts and `attach_listing_i
 
 The collaboration group is the showcase loop: `start_collaboration_session` opens shared work, `add_collaboration_item` places a structured shortlist, question, recommendation, decision, or note on the canvas, `respond_to_collaboration_item` records human guidance, and `get_collaboration_session` lets the outside agent resume with that guidance. `get_human_attention_queue` keeps ordinary collaboration questions and consequential marketplace actions visible in one place. A clearly labeled sample handoff lets a judge experience the same durable records without pretending Zingposts contains a model.
 
-The action layer in `lib/scoutboard-store.ts` enforces ownership, records attribution, and turns consequential agent requests into pending confirmation records. The site never gives an agent a user's password. Pairing grants visible, revocable scopes.
+The action layer in `lib/scoutboard-store.ts` enforces ownership, derives actor identity on the server, records attribution, and turns consequential requests into pending confirmation records. A prototype workspace can be upgraded only by entering a Supabase email code. From then on, deterministic-email and legacy-cookie access are disabled. The human returns through Supabase; the agent authenticates separately through `authenticate_agent` with a code the verified human created through `create_agent_auth_code`.
 
-WebMCP registration is page-scoped rather than a permanent connection. Zingposts persists the safe agent profile, scopes, preferences, workspace objects, verification state, and audit history. `connect_agent` works without an approval pause: anonymous agents receive public discovery plus a handoff, while agents in an authenticated browser receive safe workspace access immediately. Publishing listings, sending messages, submitting or responding to offers, and inviting trade participants require verified account state and a separate human confirmation.
+WebMCP registration is page-scoped rather than a permanent connection. Zingposts persists agent profiles, scopes, preferences, workspace objects, verified identity, and audit history. Anonymous agents receive public discovery plus a prototype handoff. Verified private work requires the agent’s own expiring session; revoking an agent immediately revokes its sessions. Publishing listings, sending messages, submitting or responding to offers, and inviting trade participants still require a separate, exact human confirmation even when both parties are authenticated.
 
-For the person-first path, the left rail has one **Bring my agent** button. The copied prompt includes the current tab’s readiness snapshot, requires a fresh WebMCP discovery preflight, and tells the agent how to distinguish a browser without `modelContext` from an agent runtime that lacks WebMCP support or permission to the ready tab. Only after discovery succeeds does it connect, inspect the workspace, and leave useful next steps in **Shared with agent**. For the agent-first path, the agent calls `connect_agent` publicly and opens the returned handoff for the person. Technical tool maps remain available at `/agents` for implementers and judges, but they are not part of the primary human navigation.
+For the person-first path, the left rail has one **Bring my agent** button. On a verified workspace it issues a one-use code and places it directly in the copied prompt; the agent exchanges it immediately and discards it. The prompt also includes the tab’s readiness snapshot, requires a fresh WebMCP preflight, and distinguishes missing browser support from missing agent-runtime permission. For the agent-first path, the agent can call `connect_agent` publicly and open the returned handoff for the person; a verified private workspace still requires a code issued by that person. Technical tool maps remain available at `/agents` for implementers and judges, but they are not part of the primary human navigation.
 
 ## Architecture
 
 - Next.js / React 19
-- Supabase Postgres for marketplace and workflow state
+- Supabase Auth for verified human sessions
+- Supabase Postgres for marketplace, identity mapping, agent sessions, and workflow state
 - Supabase Storage for listing photos
 - Netlify Functions and the Next.js runtime
-- Versioned Supabase SQL migrations for 21 tables
+- Versioned Supabase SQL migrations for marketplace, verified identity, one-time code, and agent-session tables
 - Declarative WebMCP registration with public and authenticated tool catalogs
 
 ## Deployment

@@ -54,6 +54,8 @@ assert.ok(initial.boards.length >= 3, 'expected seeded boards');
 
 const auth = await action('get_auth_status');
 assert.equal(auth.authenticated, true);
+assert.equal(auth.authLevel, 'prototype');
+assert.equal(auth.supabaseAuthenticated, false);
 
 const interfaceBefore = await action('get_interface_preferences');
 assert.equal(interfaceBefore.preferences.detailView, 'fullscreen');
@@ -70,8 +72,8 @@ const expanded = await action('set_navigation_collapsed', { collapsed: false });
 assert.equal(expanded.preferences.sidebarCollapsed, false);
 
 const capabilities = await action('get_site_capabilities');
-assert.equal(capabilities.tools.length, 101, 'expected the complete authenticated WebMCP catalog');
-assert.equal(capabilities.publicTools.length, 14, 'expected the signed-out discovery and onboarding catalog');
+assert.equal(capabilities.tools.length, 103, 'expected the complete authenticated WebMCP catalog');
+assert.equal(capabilities.publicTools.length, 15, 'expected the signed-out discovery, authentication, and onboarding catalog');
 assert.equal(capabilities.architecture.builtInAI, false);
 assert.equal(capabilities.architecture.webmcpConnectionPersistent, false);
 assert.equal(capabilities.architecture.seamlessSafeAgentConnection, true);
@@ -88,6 +90,9 @@ assert.equal(capabilities.supports.resumableWorkspaceInventory, true);
 assert.equal(capabilities.supports.untrustedContentAnnotations, true);
 assert.equal(capabilities.supports.progressiveToolDiscovery, true);
 assert.equal(capabilities.supports.contextualToolRegistration, true);
+assert.equal(capabilities.supports.verifiedWorkspaceUpgrade, true);
+assert.equal(capabilities.supports.expiringAgentCodes, true);
+assert.equal(capabilities.supports.revocableAgentSessions, true);
 
 const manifest = await publicAction('get_webmcp_manifest');
 assert.equal(manifest.progressiveDiscovery.strategy, 'front_door_plus_page_context');
@@ -113,8 +118,8 @@ assert.equal(publicListingNavigation.detailOpen, true);
 const guide = await publicAction('get_connection_guide');
 assert.equal(guide.persistence.webmcp, 'page-scoped');
 assert.equal(guide.architecture.builtInAI, false);
-assert.match(guide.workspaceReturn.human, /same normalized email/);
-assert.match(guide.workspaceReturn.agent, /does not sign in with or retain the human email/);
+assert.match(guide.workspaceReturn.human, /Supabase session/);
+assert.match(guide.workspaceReturn.agent, /single-use code/);
 
 const publicConnection = await publicAction('connect_agent', { name: `Public smoke ${Date.now()}` });
 assert.equal(publicConnection.status, 'connected_public');
@@ -222,9 +227,10 @@ assert.equal(messageGate.confirmationRequired, true, 'message sending must stop 
 const selfConfirmation = await action('request_message_send', { messageId: draft.messageId, confirmed: true });
 assert.equal(selfConfirmation.confirmationRequired, true, 'an agent must not approve its own outbound action');
 assert.equal(selfConfirmation.humanRequired, true);
-const verification = await action('complete_account_verification', { email: initial.user.email }, { type: 'human', name: 'Smoke test human' });
-assert.equal(verification.verification.status, 'verified');
-await action('request_message_send', { messageId: draft.messageId, confirmed: true }, { type: 'human', name: 'Smoke test human' });
+assert.equal(messageGate.verificationRequired, true, 'a prototype account must not cross the marketplace boundary');
+const attemptedHumanConfirmation = await action('request_message_send', { messageId: draft.messageId, confirmed: true }, { type: 'human', name: 'Smoke test human' });
+assert.equal(attemptedHumanConfirmation.confirmationRequired, true);
+assert.equal(attemptedHumanConfirmation.verificationRequired, true, 'client-supplied human identity must not bypass Supabase verification');
 const inbox = await action('list_conversations');
 assert.ok(inbox.conversations.some((item) => item.conversation.id === draft.conversationId), 'conversation inventory should preserve resumable message context');
 const research = await action('get_listing_research', { listingId: 'lst_whaler' });
@@ -258,7 +264,7 @@ console.log(JSON.stringify({
   webmcpTools: capabilities.tools.length,
   searchMatches: search.count,
   confirmationGates: ['enable_alert', 'request_message_send'],
-  trustLanes: ['immediate safe workspace', 'verified human outbound actions'],
+  trustLanes: ['prototype workspace', 'Supabase-authenticated human', 'revocable authenticated agent', 'exact human outbound approval'],
   interfacePreferences: ['canvas-first left rail', 'fullscreen details', 'collapsible navigation', 'gallery/focus/thumbnail canvas'],
   webmcpOrganization: ['views', 'queries', 'actions', 'workflows'],
   collaborationLoop: ['agent opens session', 'agent requests human decision', 'human responds', 'agent continues'],
