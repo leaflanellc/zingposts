@@ -311,23 +311,366 @@ function WebMCPToolGuide({view,detailOpen,authenticated,status}:{view:string;det
   </aside>
 }
 
-function GuestWelcome({state,load,setToast,toast,webmcpStatus}:{state:GuestState;load:()=>Promise<void>;setToast:(value:string)=>void;toast:string;webmcpStatus:WebMCPRuntimeStatus}){
-  const setup=state.pendingSetup?.found?state.pendingSetup:null; const [mode,setMode]=useState<'prototype'|'login'|'code'|null>(setup?'prototype':null); const [busy,setBusy]=useState(false); const [name,setName]=useState(''); const [email,setEmail]=useState(''); const [token,setToken]=useState('');
-  useEffect(()=>{const authError=new URLSearchParams(window.location.search).get('auth_error');if(authError)setToast(authError)},[setToast]);
-  const submit=async(event:FormEvent<HTMLFormElement>)=>{event.preventDefault();setBusy(true);try{
-    if(mode==='prototype'){
-      if(!name.trim()||!email.includes('@'))throw new Error('Enter a name and valid email for the prototype workspace.');
-      const response=await fetch('/api/session',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({mode:'sign-in',name,email})});const body=await response.json() as {error?:string};if(!response.ok)throw new Error(body.error??'Unable to open the prototype workspace.');await load();return;
+function GuestWelcome({
+  state,
+  load,
+  setToast,
+  toast,
+  webmcpStatus,
+}: {
+  state: GuestState;
+  load: () => Promise<void>;
+  setToast: (value: string) => void;
+  toast: string;
+  webmcpStatus: WebMCPRuntimeStatus;
+}) {
+  const setup = state.pendingSetup?.found ? state.pendingSetup : null;
+  const [mode, setMode] = useState<"prototype" | "login" | "sent" | null>(
+    setup ? "prototype" : null,
+  );
+  const [busy, setBusy] = useState(false);
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  useEffect(() => {
+    const authError = new URLSearchParams(window.location.search).get(
+      "auth_error",
+    );
+    if (authError) setToast(authError);
+  }, [setToast]);
+  const submit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setBusy(true);
+    try {
+      if (mode === "prototype") {
+        if (!name.trim() || !email.includes("@"))
+          throw new Error(
+            "Enter a name and valid email for the prototype workspace.",
+          );
+        const response = await fetch("/api/session", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ mode: "sign-in", name, email }),
+        });
+        const body = (await response.json()) as { error?: string };
+        if (!response.ok)
+          throw new Error(
+            body.error ?? "Unable to open the prototype workspace.",
+          );
+        await load();
+        return;
+      }
+      if (mode === "login") {
+        const response = await fetch("/api/auth/request", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ intent: "login", email }),
+        });
+        const body = (await response.json()) as { error?: string };
+        if (!response.ok)
+          throw new Error(
+            body.error ?? "Unable to send the secure sign-in link.",
+          );
+        setMode("sent");
+        setToast("Secure sign-in link sent. Open it to finish signing in.");
+        return;
+      }
+    } catch (error) {
+      setToast(error instanceof Error ? error.message : "Unable to continue.");
+    } finally {
+      setBusy(false);
     }
-    if(mode==='login'){
-      const response=await fetch('/api/auth/request',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({intent:'login',email})});const body=await response.json() as {error?:string};if(!response.ok)throw new Error(body.error??'Unable to send the code.');setMode('code');setToast('Check your email for the six-digit code or secure sign-in link.');return;
-    }
-    const response=await fetch('/api/auth/verify',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({email,token})});const body=await response.json() as {error?:string};if(!response.ok)throw new Error(body.error??'Unable to verify the code.');window.location.href='/';
-  }catch(error){setToast(error instanceof Error?error.message:'Unable to continue.')}finally{setBusy(false)}};
-  return <main className="welcome-shell"><header className="welcome-nav"><span className="brand"><span className="brand-mark">Z</span><span>Zingposts</span></span><span className="no-ai-pill">Works with your agent · no built-in AI</span></header><section className="welcome-hero"><div className="welcome-copy"><p className="eyebrow">A shared marketplace workspace</p><h1>Interesting things,<br/>organized together.</h1><p>Zingposts owns the listings, boards, alerts, research, and deal workflow. You bring the judgment—and, if you want one, your own agent.</p><div className="welcome-actions"><button data-testid="continue-workspace" className="welcome-primary" onClick={()=>setMode('login')}>Continue to my workspace</button><button data-testid="person-first" className="welcome-secondary" onClick={()=>setMode('prototype')}>Try a prototype workspace</button></div><small>Prototype work is instant. Supabase email authentication begins only when you verify a workspace for real marketplace actions.</small></div><div className="welcome-collage">{state.listings.slice(0,4).map((listing,index)=><article key={listing.id} style={{'--i':index} as any}><img src={listing.image} alt=""/><span>{listing.year}</span><b>{listing.title}</b><small>{money(listing.price)}</small></article>)}</div></section>{state.agentAuthenticated&&<section className="handoff-card authenticated-agent"><div className="handoff-icon">A</div><div><p className="eyebrow">Agent authenticated</p><h2>{state.agentSession?.name} can resume private workspace work</h2><p>Its revocable session is active. Sign in with Supabase to open the same canvas as the human.</p></div><button onClick={()=>setMode('login')}>Open my workspace</button></section>}{setup&&<section className="handoff-card" data-testid="agent-handoff"><div className="handoff-icon">A</div><div><p className="eyebrow">Your agent brought you here</p><h2>{setup.agent_name} prepared a prototype workspace</h2><p>Open or resume the prototype instantly. Supabase verification will be required before anything leaves the workspace.</p></div><button onClick={()=>setMode('prototype')}>Continue</button></section>}<section className="arrival-paths" id="agent-first"><article><span>01</span><p className="eyebrow">Explore freely</p><h2>Start with a prototype workspace</h2><p>Browse, save, organize, research, and draft without an account ceremony.</p><ol><li>Use any test email</li><li>Build a useful workspace</li><li>Upgrade only when needed</li></ol></article><article><span>02</span><p className="eyebrow">Cross the boundary</p><h2>Verify a real email with Supabase</h2><p>Before publishing or contacting anyone, replace the test email and prove you control the real address.</p><ol><li>Request an email code or secure link</li><li>Verify the email</li><li>Workspace ownership becomes durable</li></ol></article><article><span>03</span><p className="eyebrow">Bring your agent</p><h2>Issue one revocable code</h2><p>Verified users give an outside agent a single-use, expiring code—never their own login.</p><ol><li>User issues the code</li><li>Agent exchanges it once</li><li>Human still approves outbound actions</li></ol></article></section>{mode&&<div className="modal-backdrop"><section className="modal sign-in-modal" role="dialog" aria-modal="true" aria-label={mode==='prototype'?'Open a prototype workspace':'Continue to a verified workspace'}><button className="modal-close" aria-label="Close workspace access" onClick={()=>setMode(null)}>×</button><p className="eyebrow">{mode==='prototype'?'Prototype access':'Supabase authentication'}</p><h2>{mode==='prototype'?'Start or resume a prototype':mode==='login'?'Continue to my workspace':'Enter the email code'}</h2><p className="modal-copy">{mode==='prototype'?'Use any email while exploring. Reuse the same email to return until you verify the workspace.':mode==='login'?'Enter the real email connected to your verified workspace.':'Enter the six-digit code, or use the secure sign-in link in the same email.'}</p><form onSubmit={submit}>{mode==='prototype'&&<label>Name<input value={name} onChange={event=>setName(event.target.value)} autoComplete="name" placeholder="Your name" required/></label>}<label>Email<input type="email" value={email} onChange={event=>setEmail(event.target.value)} autoComplete="email" placeholder="you@example.com" readOnly={mode==='code'} required/></label>{mode==='code'&&<label>Six-digit code<input data-testid="otp-code" inputMode="numeric" pattern="[0-9]{6}" maxLength={6} value={token} onChange={event=>setToken(event.target.value.replace(/\D/g,'').slice(0,6))} autoComplete="one-time-code" placeholder="123456" required/></label>}<button data-testid="sign-in-submit" className="primary-action" disabled={busy||(mode==='prototype'&&!name.trim())||!email.includes('@')||(mode==='code'&&token.length!==6)}>{busy?'Working…':mode==='prototype'?'Open prototype':mode==='login'?'Email me a code':'Verify and continue'}</button></form><div className="sign-in-trust"><span>✓</span><p>{mode==='prototype'?<><b>No real authentication yet.</b> Safe workspace actions only.</>:<><b>Real authentication.</b> Supabase verifies control of this email.</>}</p></div></section></div>}<WebMCPToolGuide view="agent" detailOpen={false} authenticated={Boolean(state.agentAuthenticated)} status={webmcpStatus}/>{toast&&<div role="status" className="toast">{toast}</div>}</main>;
+  };
+  return (
+    <main className="welcome-shell">
+      <header className="welcome-nav">
+        <span className="brand">
+          <span className="brand-mark">Z</span>
+          <span>Zingposts</span>
+        </span>
+        <span className="no-ai-pill">
+          Works with your agent · no built-in AI
+        </span>
+      </header>
+      <section className="welcome-hero">
+        <div className="welcome-copy">
+          <p className="eyebrow">A shared marketplace workspace</p>
+          <h1>
+            Interesting things,
+            <br />
+            organized together.
+          </h1>
+          <p>
+            Zingposts owns the listings, boards, alerts, research, and deal
+            workflow. You bring the judgment—and, if you want one, your own
+            agent.
+          </p>
+          <div className="welcome-actions">
+            <button
+              data-testid="continue-workspace"
+              className="welcome-primary"
+              onClick={() => setMode("login")}
+            >
+              Continue to my workspace
+            </button>
+            <button
+              data-testid="person-first"
+              className="welcome-secondary"
+              onClick={() => setMode("prototype")}
+            >
+              Try a prototype workspace
+            </button>
+          </div>
+          <small>
+            Prototype work is instant. Supabase email authentication begins only
+            when you verify a workspace for real marketplace actions.
+          </small>
+        </div>
+        <div className="welcome-collage">
+          {state.listings.slice(0, 4).map((listing, index) => (
+            <article key={listing.id} style={{ "--i": index } as any}>
+              <img src={listing.image} alt="" />
+              <span>{listing.year}</span>
+              <b>{listing.title}</b>
+              <small>{money(listing.price)}</small>
+            </article>
+          ))}
+        </div>
+      </section>
+      {state.agentAuthenticated && (
+        <section className="handoff-card authenticated-agent">
+          <div className="handoff-icon">A</div>
+          <div>
+            <p className="eyebrow">Agent authenticated</p>
+            <h2>
+              {state.agentSession?.name} can resume private workspace work
+            </h2>
+            <p>
+              Its revocable session is active. Sign in with Supabase to open the
+              same canvas as the human.
+            </p>
+          </div>
+          <button onClick={() => setMode("login")}>Open my workspace</button>
+        </section>
+      )}
+      {setup && (
+        <section className="handoff-card" data-testid="agent-handoff">
+          <div className="handoff-icon">A</div>
+          <div>
+            <p className="eyebrow">Your agent brought you here</p>
+            <h2>{setup.agent_name} prepared a prototype workspace</h2>
+            <p>
+              Open or resume the prototype instantly. Supabase verification will
+              be required before anything leaves the workspace.
+            </p>
+          </div>
+          <button onClick={() => setMode("prototype")}>Continue</button>
+        </section>
+      )}
+      <section className="arrival-paths" id="agent-first">
+        <article>
+          <span>01</span>
+          <p className="eyebrow">Explore freely</p>
+          <h2>Start with a prototype workspace</h2>
+          <p>
+            Browse, save, organize, research, and draft without an account
+            ceremony.
+          </p>
+          <ol>
+            <li>Use any test email</li>
+            <li>Build a useful workspace</li>
+            <li>Upgrade only when needed</li>
+          </ol>
+        </article>
+        <article>
+          <span>02</span>
+          <p className="eyebrow">Cross the boundary</p>
+          <h2>Verify a real email with Supabase</h2>
+          <p>
+            Before publishing or contacting anyone, replace the test email and
+            prove you control the real address.
+          </p>
+          <ol>
+            <li>Request a secure email link</li>
+            <li>Verify the email</li>
+            <li>Workspace ownership becomes durable</li>
+          </ol>
+        </article>
+        <article>
+          <span>03</span>
+          <p className="eyebrow">Bring your agent</p>
+          <h2>Issue one revocable code</h2>
+          <p>
+            Verified users give an outside agent a single-use, expiring
+            code—never their own login.
+          </p>
+          <ol>
+            <li>User issues the code</li>
+            <li>Agent exchanges it once</li>
+            <li>Human still approves outbound actions</li>
+          </ol>
+        </article>
+      </section>
+      {mode && (
+        <div className="modal-backdrop">
+          <section
+            className="modal sign-in-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-label={
+              mode === "prototype"
+                ? "Open a prototype workspace"
+                : "Continue to a verified workspace"
+            }
+          >
+            <button
+              className="modal-close"
+              aria-label="Close workspace access"
+              onClick={() => setMode(null)}
+            >
+              ×
+            </button>
+            <p className="eyebrow">
+              {mode === "prototype"
+                ? "Prototype access"
+                : "Supabase authentication"}
+            </p>
+            <h2>
+              {mode === "prototype"
+                ? "Start or resume a prototype"
+                : mode === "login"
+                  ? "Continue to my workspace"
+                  : "Check your email"}
+            </h2>
+            <p className="modal-copy">
+              {mode === "prototype"
+                ? "Use any email while exploring. Reuse the same email to return until you verify the workspace."
+                : mode === "login"
+                  ? "Enter the real email connected to your verified workspace."
+                  : `We sent a secure sign-in link to ${email}. Open it to return to Zingposts and sign in automatically.`}
+            </p>
+            {mode === "sent" ? (
+              <section className="email-link-sent" role="status">
+                <span>✉</span>
+                <div>
+                  <b>Open the link in your email</b>
+                  <p>
+                    No code is required. The link signs this browser in through
+                    Supabase.
+                  </p>
+                </div>
+                <button
+                  className="primary-action"
+                  onClick={() => window.location.reload()}
+                >
+                  I opened the link — check again
+                </button>
+                <button
+                  className="secondary-action"
+                  onClick={() => setMode("login")}
+                >
+                  Use a different email or resend
+                </button>
+              </section>
+            ) : (
+              <form onSubmit={submit}>
+                {mode === "prototype" && (
+                  <label>
+                    Name
+                    <input
+                      value={name}
+                      onChange={(event) => setName(event.target.value)}
+                      autoComplete="name"
+                      placeholder="Your name"
+                      required
+                    />
+                  </label>
+                )}
+                <label>
+                  Email
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(event) => setEmail(event.target.value)}
+                    autoComplete="email"
+                    placeholder="you@example.com"
+                    required
+                  />
+                </label>
+                <button
+                  data-testid="sign-in-submit"
+                  className="primary-action"
+                  disabled={
+                    busy ||
+                    (mode === "prototype" && !name.trim()) ||
+                    !email.includes("@")
+                  }
+                >
+                  {busy
+                    ? "Working…"
+                    : mode === "prototype"
+                      ? "Open prototype"
+                      : "Email me a secure link"}
+                </button>
+              </form>
+            )}
+            <div className="sign-in-trust">
+              <span>✓</span>
+              <p>
+                {mode === "prototype" ? (
+                  <>
+                    <b>No real authentication yet.</b> Safe workspace actions
+                    only.
+                  </>
+                ) : (
+                  <>
+                    <b>Real authentication.</b> Supabase verifies control of
+                    this email.
+                  </>
+                )}
+              </p>
+            </div>
+          </section>
+        </div>
+      )}
+      <WebMCPToolGuide
+        view="agent"
+        detailOpen={false}
+        authenticated={Boolean(state.agentAuthenticated)}
+        status={webmcpStatus}
+      />
+      {toast && (
+        <div role="status" className="toast">
+          {toast}
+        </div>
+      )}
+    </main>
+  );
 }
 
-function PendingAgentSetup({setup,dismiss}:{setup:Row;dismiss:()=>void}){return <section className="pending-setup" data-testid="pending-agent-setup"><span className="agent-orb">A</span><div><small>Attaching agent-first setup</small><b>{setup.agent_name} is connecting for safe workspace work</b><span>No scope approval is needed for browsing, organizing, research, alerts, or drafts. Publishing and outbound commerce stay protected.</span></div><button className="soft-button" onClick={dismiss}>Cancel</button></section>}
+function PendingAgentSetup({
+  setup,
+  dismiss,
+}: {
+  setup: Row;
+  dismiss: () => void;
+}) {
+  return (
+    <section className="pending-setup" data-testid="pending-agent-setup">
+      <span className="agent-orb">A</span>
+      <div>
+        <small>Attaching agent-first setup</small>
+        <b>{setup.agent_name} is connecting for safe workspace work</b>
+        <span>
+          No scope approval is needed for browsing, organizing, research,
+          alerts, or drafts. Publishing and outbound commerce stay protected.
+        </span>
+      </div>
+      <button className="soft-button" onClick={dismiss}>
+        Cancel
+      </button>
+    </section>
+  );
+}
 
 function WorkspaceSidebar({state,webmcpStatus,view,query,setQuery,category,viewMode,filtersExpanded,draggingId,collapsed,accountOpen,setAccountOpen,nav,toggle,setModal,signOut,setMarketplaceView,onDrop}:{state:State;webmcpStatus:WebMCPRuntimeStatus;view:string;query:string;setQuery:(value:string)=>void;category:string;viewMode:string;filtersExpanded:boolean;draggingId:string|null;collapsed:boolean;accountOpen:boolean;setAccountOpen:(value:boolean)=>void;nav:(value:string)=>void;toggle:()=>void;setModal:(value:ModalType)=>void;signOut:()=>void;setMarketplaceView:(value:Row)=>void;onDrop:(boardId:string,listingId:string)=>void}){
   const [inviteCopyState,setInviteCopyState]=useState<'idle'|'copied'|'failed'>('idle'); const inviteCopied=inviteCopyState==='copied';
@@ -438,13 +781,163 @@ function ApprovalReview({confirmation,state,act,close}:{confirmation:Row;state:S
 
 function VerificationDock({confirmation,dismiss,verify}:{confirmation:Row;dismiss:()=>void;verify:()=>void}){return <section className="confirmation-dock verification-dock" role="alert"><span className="confirm-icon">✓</span><div><small>Verify at the marketplace boundary</small><b>{confirmation.summary} Verify the account before reviewing this action.</b></div><button className="confirmation-dismiss" onClick={dismiss}>Not now</button><button data-testid="verify-for-action" onClick={verify}>Verify account</button></section>}
 
-function AccountVerificationModal({state,close}:{state:State;close:()=>void}){
-  const [step,setStep]=useState<'email'|'code'>('email'); const [email,setEmail]=useState(state.user.email); const [token,setToken]=useState(''); const [busy,setBusy]=useState(false); const [error,setError]=useState('');
-  const submit=async(event:FormEvent<HTMLFormElement>)=>{event.preventDefault();setBusy(true);setError('');try{if(step==='email'){const response=await fetch('/api/auth/request',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({intent:'upgrade',email,name:state.user.displayName})});const body=await response.json() as {error?:string};if(!response.ok)throw new Error(body.error??'Unable to send the verification code.');setStep('code');return;}const response=await fetch('/api/auth/verify',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({email,token})});const body=await response.json() as {error?:string};if(!response.ok)throw new Error(body.error??'Unable to verify this email.');window.location.href='/';}catch(cause){setError(cause instanceof Error?cause.message:'Unable to verify this account.')}finally{setBusy(false)}};
-  return <div className="modal-backdrop" onMouseDown={close}><section className="modal sign-in-modal verification-modal" role="dialog" aria-modal="true" aria-label="Verify your Zingposts workspace" onMouseDown={event=>event.stopPropagation()}><button className="modal-close" aria-label="Close account verification" onClick={close}>×</button><p className="eyebrow">Marketplace boundary</p><h2>{step==='email'?'Verify a real email':'Complete Supabase verification'}</h2><p className="modal-copy">{step==='email'?'Replace the prototype email if needed. This becomes the durable login for this workspace before anything reaches another marketplace participant.':`Use the secure sign-in link sent to ${email}. If the message includes a six-digit code, you can enter it here instead.`}</p><form onSubmit={submit}><label>Email<input type="email" value={email} onChange={event=>setEmail(event.target.value)} autoComplete="email" readOnly={step==='code'} required/></label>{step==='code'&&<label>Six-digit code<input data-testid="verification-otp-code" inputMode="numeric" pattern="[0-9]{6}" maxLength={6} value={token} onChange={event=>setToken(event.target.value.replace(/\D/g,'').slice(0,6))} autoComplete="one-time-code" placeholder="123456" required/></label>}{error&&<p className="form-error" role="alert">{error}</p>}<button data-testid="verification-submit" className="primary-action" disabled={busy||!email.includes('@')||(step==='code'&&token.length!==6)}>{busy?'Working…':step==='email'?'Send verification email':'Verify workspace'}</button></form><div className="sign-in-trust"><span>✓</span><p><b>Supabase authentication begins here.</b> After verification, this browser and the user’s outside agent must each authenticate separately. The agent never receives the human session.</p></div>{step==='code'&&<button className="change-verification-email" onClick={()=>{setStep('email');setToken('');setError('')}}>Use a different email</button>}</section></div>;
+function AccountVerificationModal({
+  state,
+  close,
+}: {
+  state: State;
+  close: () => void;
+}) {
+  const [step, setStep] = useState<"email" | "sent">("email");
+  const [email, setEmail] = useState(state.user.email);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  const submit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setBusy(true);
+    setError("");
+    try {
+      const response = await fetch("/api/auth/request", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          intent: "upgrade",
+          email,
+          name: state.user.displayName,
+        }),
+      });
+      const body = (await response.json()) as { error?: string };
+      if (!response.ok)
+        throw new Error(
+          body.error ?? "Unable to send the secure verification link.",
+        );
+      setStep("sent");
+    } catch (cause) {
+      setError(
+        cause instanceof Error
+          ? cause.message
+          : "Unable to verify this account.",
+      );
+    } finally {
+      setBusy(false);
+    }
+  };
+  return (
+    <div className="modal-backdrop" onMouseDown={close}>
+      <section
+        className="modal sign-in-modal verification-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Verify your Zingposts workspace"
+        onMouseDown={(event) => event.stopPropagation()}
+      >
+        <button
+          className="modal-close"
+          aria-label="Close account verification"
+          onClick={close}
+        >
+          ×
+        </button>
+        <p className="eyebrow">Marketplace boundary</p>
+        <h2>{step === "email" ? "Verify a real email" : "Check your email"}</h2>
+        <p className="modal-copy">
+          {step === "email"
+            ? "Replace the prototype email if needed. This becomes the durable login for this workspace before anything reaches another marketplace participant."
+            : `We sent a secure verification link to ${email}. Open it to return here and verify the workspace automatically.`}
+        </p>
+        {step === "sent" ? (
+          <section className="email-link-sent" role="status">
+            <span>✉</span>
+            <div>
+              <b>Open the link in your email</b>
+              <p>
+                No code is required. Supabase will verify the address and
+                reconnect this workspace.
+              </p>
+            </div>
+            <button
+              className="primary-action"
+              onClick={() => window.location.reload()}
+            >
+              I opened the link — check again
+            </button>
+            <button
+              className="secondary-action"
+              onClick={() => {
+                setStep("email");
+                setError("");
+              }}
+            >
+              Use a different email or resend
+            </button>
+          </section>
+        ) : (
+          <form onSubmit={submit}>
+            <label>
+              Email
+              <input
+                type="email"
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
+                autoComplete="email"
+                required
+              />
+            </label>
+            {error && (
+              <p className="form-error" role="alert">
+                {error}
+              </p>
+            )}
+            <button
+              data-testid="verification-submit"
+              className="primary-action"
+              disabled={busy || !email.includes("@")}
+            >
+              {busy ? "Working…" : "Email me a secure verification link"}
+            </button>
+          </form>
+        )}
+        <div className="sign-in-trust">
+          <span>✓</span>
+          <p>
+            <b>Supabase authentication begins here.</b> After verification, this
+            browser and the user’s outside agent must each authenticate
+            separately. The agent never receives the human session.
+          </p>
+        </div>
+      </section>
+    </div>
+  );
 }
 
-function ViewHeader({eyebrow,title,copy,action,onAction}:{eyebrow:string;title:string;copy:string;action?:string;onAction?:()=>void}){return <div className="market-header page-header"><div><p className="eyebrow">{eyebrow}</p><h1>{title}</h1><p>{copy}</p></div>{action&&<button className="sell-button" onClick={onAction}>{action}</button>}</div>}
+function ViewHeader({
+  eyebrow,
+  title,
+  copy,
+  action,
+  onAction,
+}: {
+  eyebrow: string;
+  title: string;
+  copy: string;
+  action?: string;
+  onAction?: () => void;
+}) {
+  return (
+    <div className="market-header page-header">
+      <div>
+        <p className="eyebrow">{eyebrow}</p>
+        <h1>{title}</h1>
+        <p>{copy}</p>
+      </div>
+      {action && (
+        <button className="sell-button" onClick={onAction}>
+          {action}
+        </button>
+      )}
+    </div>
+  );
+}
 
 function Modal({type,close,state,listing,act,onDone}:{type:Exclude<ModalType,null|'verify'>;close:()=>void;state:State;listing?:Row;act:any;onDone:()=>void}){ const [submitting,setSubmitting]=useState(false); const [formError,setFormError]=useState(''); const [alertPreview,setAlertPreview]=useState<Row|null>(null); const [agentInvite,setAgentInvite]=useState<Row|null>(null); const formRef=useRef<HTMLFormElement|null>(null); const previewAlert=async()=>{if(!formRef.current)return;setSubmitting(true);setFormError('');try{const data=Object.fromEntries(new FormData(formRef.current));const result=await postAction('interpret_alert',{query:data.query,criteria:{maxPrice:Number(data.maxPrice)||undefined,beforeYear:Number(data.beforeYear)||undefined}},{type:'human',name:state.user.displayName});setAlertPreview(result)}catch(error){setFormError(error instanceof Error?error.message:'Unable to preview this alert.')}finally{setSubmitting(false)}}; const submit=async(e:FormEvent<HTMLFormElement>)=>{e.preventDefault();setSubmitting(true);setFormError('');try{const formData=new FormData(e.currentTarget);let image='/images/draft.jpg';const photo=formData.get('photo');if(photo instanceof File&&photo.size){const upload=new FormData();upload.set('file',photo);const response=await fetch('/api/uploads',{method:'POST',body:upload});const body=await response.json() as {url?:string;error?:string};if(!response.ok||!body.url)throw new Error(body.error??'Photo upload failed');image=body.url;}formData.delete('photo');const data=Object.fromEntries(formData); if(type==='listing') await act('create_listing_draft',{...data,image,year:Number(data.year),price:Number(data.price)},'Listing draft created.'); if(type==='track') await act('import_listing_url',{...data,price:Number(data.price)},'Outside listing is now tracked.'); if(type==='board') await act('create_board',data,'Board created.'); if(type==='alert') await act('create_alert_draft',{name:data.name,query:data.query,criteria:{maxPrice:Number(data.maxPrice)||undefined,beforeYear:Number(data.beforeYear)||undefined}},'Alert draft created.'); if(type==='research') await act('add_research_note',{listingId:listing?.id,title:data.title,body:data.body,confidence:data.confidence,sources:data.source?[{label:'Research source',url:data.source}]:[]},'Research note added.'); if(type==='comparable') await act('record_price_comparable',{listingId:listing?.id,title:data.title,soldPrice:Number(data.soldPrice),soldDate:data.soldDate,location:data.location,condition:data.condition,sourceUrl:data.sourceUrl,sourceLabel:data.sourceLabel,notes:data.notes,confidence:data.confidence},'Price comparable recorded.'); if(type==='plan') await act('create_negotiation_plan',{listingId:listing?.id,targetOffer:Number(data.targetOffer),ceiling:Number(data.ceiling),strategy:data.strategy,contingencies:String(data.contingencies??'').split('\n').map(value=>value.trim()).filter(Boolean)},'Private offer plan saved.'); if(type==='message') await act('draft_seller_message',{listingId:listing?.id,body:data.body},'Message draft prepared.'); if(type==='offer'){const con=state.conversations.find(c=>c.listing_id===listing?.id);await act('create_offer_draft',{listingId:listing?.id,conversationId:con?.id??'',amount:Number(data.amount),terms:data.terms},'Offer draft prepared.')} if(type==='trade') await act('create_trade_room',{title:data.title,summary:data.summary,participants:[{name:state.user.displayName,email:state.user.email,role:'proposer'},{name:'Counterparty',role:'counterparty'}],assets:listing?[{listingId:listing.id,ownerName:userName(state,listing.owner_id),label:listing.title,value:listing.price,cashAdjustment:Number(data.cashAdjustment)||0,conditions:['Inspection required']}]:[]},'Trade room created.'); if(type==='pair'&&state.verification.status==='verified'){const invite=await act('create_agent_auth_code',{name:data.name},'One-time agent code created.',{type:'human',name:state.user.displayName});setAgentInvite(invite);return;} if(type==='pair') await act('connect_agent',{name:data.name},'Agent connected for prototype workspace work.',{type:'human',name:state.user.displayName}); onDone();}catch(error){setFormError(error instanceof Error?error.message:'Action failed.')}finally{setSubmitting(false)} };
 const configs:Record<string,{title:string;copy:string;fields:Array<[string,string,string,string?]>}>={listing:{title:'Create a native listing',copy:'Start with the facts you know. You or a connected external agent can complete the record later.',fields:[['photo','Listing photo','file'],['title','Title','text','1976 Mako 20 center console'],['year','Year','number','1976'],['make','Make','text','Mako'],['model','Model','text','20'],['category','Category','select'],['price','Asking price','number','12500'],['location','Location','text','Richmond, VA'],['condition','Condition','select'],['description','Description','textarea','Tell buyers what makes it special…']]},track:{title:'Track an outside find',copy:'Zingposts will preserve the source and treat its details as unverified.',fields:[['url','Source URL','url','https://…'],['title','Listing title','text','1979 Toyota FJ40'],['price','Current price','number','31500'],['location','Location','text','Knoxville, TN'],['category','Category','select']]},board:{title:'Create a board',copy:'Boards can be reorganized by you or a scoped external agent.',fields:[['name','Board name','text','Worth a drive'],['description','Description','textarea','Strong candidates for an in-person inspection'],['color','Color','color','#b55232']]},alert:{title:'Create an alert',copy:'Start in natural language, preview the current matches, then enable it.',fields:[['name','Alert name','text','Vintage 4×4s under $25k'],['query','What are you looking for?','textarea','Pre-1990 four wheel drives in good condition'],['maxPrice','Maximum price','number','25000'],['beforeYear','Built before','number','1990']]},research:{title:'Add listing research',copy:listing?.title??'',fields:[['title','Research title','text','Known issues and inspection points'],['body','Findings','textarea','Record what you found and what still needs verification…'],['source','Source URL','url','https://…'],['confidence','Confidence','select']]},comparable:{title:'Record a sold comparable',copy:'Add evidence the person and their outside agent can inspect and reuse in transparent price calculations.',fields:[['title','Comparable item','text',listing?.title??'Similar make and model'],['soldPrice','Sold price','number',String(listing?.price??10000)],['soldDate','Sale date','date'],['location','Location','text',listing?.location??''],['condition','Condition','select'],['sourceUrl','Source URL','url','https://…'],['sourceLabel','Source label','text','Auction result or marketplace archive'],['notes','Why it is comparable','textarea','Note condition, options, documentation, and important differences…'],['confidence','Confidence','select']]},plan:{title:'Create a private offer plan',copy:'This is a reviewable workspace plan. It does not contact the seller or submit an offer.',fields:[['targetOffer','Target opening offer','number',String(Math.round((listing?.price??10000)*.9))],['ceiling','Walk-away ceiling','number',String(listing?.price??10000)],['strategy','Strategy','textarea','Lead with condition evidence and confirm ownership before discussing price.'],['contingencies','Contingencies, one per line','textarea','Satisfactory inspection\nClear ownership documents\nTransport cost confirmed']]},message:{title:'Draft a seller message',copy:'Nothing will be sent until you confirm it.',fields:[['body','Message','textarea',`Hi — I’m interested in the ${listing?.title??'listing'}. Could you tell me more about its history and anything not covered in the listing?`]]},offer:{title:'Prepare an offer',copy:'Zingposts will keep this as a private draft.',fields:[['amount','Offer amount','number',String(Math.round((listing?.price??10000)*.92))],['terms','Terms and contingencies','textarea','Subject to a satisfactory inspection and clear ownership documents.']]},trade:{title:'Create a trade room',copy:'Structure people, assets, cash adjustments, and conditions.',fields:[['title','Trade room title','text',listing?`${listing.title} trade proposal`:'Weekend project trade'],['summary','Summary','textarea','Explore a fair trade with clear inspection conditions.'],['cashAdjustment','Cash adjustment','number','0']]},pair:{title:'Create an agent connection invite',copy:'This creates a pending, revocable profile. Your outside agent still connects through the browser’s WebMCP surface and never receives your password.',fields:[['name','Agent name','text','My local agent']]}};

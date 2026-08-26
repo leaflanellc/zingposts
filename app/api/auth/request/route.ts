@@ -12,8 +12,8 @@ export async function POST(request:Request){
     const client=await supabaseAuthClient(); const callbackUrl=new URL('/auth/callback',request.url).toString();
     const {error}=await client.auth.signInWithOtp({email,options:{shouldCreateUser:intent==='upgrade',emailRedirectTo:callbackUrl,data:{display_name:workspaceUser?.displayName??String(body.name??'').trim(),zingposts_workspace_id:workspaceUser?.userId??null}}});
     if(error)throw error;
-    return NextResponse.json({ok:true,email,intent,message:'Check your email for the six-digit code or secure sign-in link.'});
+    return NextResponse.json({ok:true,email,intent,message:'Check your email for the secure sign-in link.'});
   }catch(error){
-    return NextResponse.json({ok:false,error:error instanceof Error?error.message:'Unable to send the sign-in code.'},{status:400});
+    return NextResponse.json({ok:false,error:error instanceof Error?error.message:'Unable to send the secure sign-in link.'},{status:400});
   }
 }

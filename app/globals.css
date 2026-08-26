@@ -306,6 +306,11 @@ body { font-size:14px; }
 .modal.sign-in-modal form>.primary-action { font-size:12px; }
 .sign-in-trust p { font-size:10px; }
 .sign-in-trust b { font-size:11px; }
+.email-link-sent { display:grid; grid-template-columns:auto minmax(0,1fr); gap:10px 12px; align-items:center; border:1px solid #cbd9ce; border-radius:12px; padding:14px; background:#f2f7f3; }
+.email-link-sent>span { width:34px; height:34px; display:grid; place-items:center; border-radius:9px; background:#dfece2; color:#42634e; font-size:16px; }
+.email-link-sent b { font-size:13px; }
+.email-link-sent p { margin:4px 0 0; color:#68736b; font-size:11px; line-height:1.5; }
+.email-link-sent>button { grid-column:1/-1; min-height:42px; border-radius:9px; font-size:11px; font-weight:700; }
 
 .workbench-hero p { font-size:12px; }
 .workbench-loop span { font-size:10px; }
