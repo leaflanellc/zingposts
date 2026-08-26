@@ -40,6 +40,12 @@ async function publicAction(name, input = {}) {
   return body.result;
 }
 
+async function workspaceState() {
+  const response = await fetch(`${base}/api/state`, { headers: { cookie: sessionCookie } });
+  assert.equal(response.ok, true, 'GET /api/state failed');
+  return response.json();
+}
+
 const initialResponse = await fetch(`${base}/api/state`, { headers: { cookie: sessionCookie } });
 assert.equal(initialResponse.ok, true, 'GET /api/state failed');
 const initial = await initialResponse.json();
@@ -133,6 +139,11 @@ assert.equal(boardReplay.replayed, true);
 const selectedIds = search.results.slice(0, 2).map((item) => item.id);
 const organized = await action('add_listings_to_board', { boardId: board.boardId, listingIds: selectedIds, notes: 'Automated smoke test' });
 assert.equal(organized.count, selectedIds.length);
+const removed = await action('remove_listings_from_board', { boardId: board.boardId, listingIds: [selectedIds[0]] });
+assert.equal(removed.removed, 1, 'a listing should be removable from a board');
+const afterRemoval = await workspaceState();
+assert.ok(!afterRemoval.boardItems.some((item) => item.board_id === board.boardId && item.listing_id === selectedIds[0]), 'removed listing should no longer be a board member');
+await action('add_listings_to_board', { boardId: board.boardId, listingIds: [selectedIds[0]], notes: 'Restored after removal smoke test' });
 
 const collaboration = await action('start_collaboration_session', { agentName: 'Smoke test agent', objective: `Choose the strongest vintage boat ${runId}`, listingIds: selectedIds, constraints: { maxPrice: 20000 } });
 const recommendation = await action('add_collaboration_item', { sessionId: collaboration.sessionId, kind: 'recommendation', title: 'Best inspection candidate', body: 'The Whaler has the strongest record, but the original fuel tank needs an in-person check.', listingIds: ['lst_whaler','lst_chris'], options: ['Prioritize Whaler','Compare again'], requiresHumanResponse: true });
