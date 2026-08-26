@@ -239,6 +239,11 @@ body { font-size:14px; }
 .rail-control-heading button,.rail-filters button { font-size:10px; }
 .sidebar-agent strong { font-size:12px; }
 .sidebar-agent span { font-size:10px; line-height:1.35; }
+.account-popover small { font-size:10px; }
+.account-popover b { font-size:13px; }
+.account-popover span { font-size:11px; }
+.account-popover button { font-size:11px; }
+.account-popover .verification-line { font-size:10px; }
 .canvas-context p { font-size:9px; }
 .canvas-context>span { font-size:10px; }
 
@@ -257,6 +262,8 @@ body { font-size:14px; }
 .detail-media-caption { font-size:11px; }
 .detail-title>div>p:last-child { font-size:12px; }
 .detail-price span { font-size:10px; }
+.detail-signals span { font-size:10px; }
+.detail-signals b { font-size:12px; }
 .detail-content>.detail-tabs button { padding-block:15px 13px; font-size:13px; }
 .detail-scroll { padding:0 18px; }
 .detail-scroll .inspector-section { margin-inline:12px; padding-block:22px; }
