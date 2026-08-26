@@ -171,6 +171,8 @@ const WEBMCP_PAGE_GROUPS=[
 const GLOBAL_WEBMCP_TOOLS=['get_site_capabilities','get_webmcp_manifest','get_capability_index','get_capability_group','navigate_to_workspace','get_connection_guide','get_auth_status','connect_agent','get_workspace_overview','get_human_attention_queue','get_verification_status','get_workspace_setup_status'] as const;
 function webmcpContextId(view:string,detailOpen:boolean){return detailOpen?'listing':view==='mine'?'selling':view==='workbench'?'workbench':view==='alerts'?'alerts':view==='inbox'?'inbox':view==='trades'?'trades':view==='activity'?'activity':view==='agent'?'connection':'marketplace'}
 function contextualToolNames(contextId:string){const group=WEBMCP_PAGE_GROUPS.find(item=>item.id===contextId)??WEBMCP_PAGE_GROUPS[0];return new Set<string>([...GLOBAL_WEBMCP_TOOLS,...group.tools])}
+let webmcpRegistrationQueue:Promise<void>=Promise.resolve();
+function enqueueWebMCPRegistration(task:()=>Promise<void>){const next=webmcpRegistrationQueue.catch(()=>{}).then(task);webmcpRegistrationQueue=next.catch(()=>{});return next}
 const MARKETPLACE_CATEGORIES=['All','Cars & trucks','Boats','Campers','Machinery','Motorcycles'];
 const CLIENT_SEARCH_SYNONYMS:Record<string,string[]>={boat:['boat','boats','watercraft'],boats:['boat','boats','watercraft'],truck:['truck','trucks','pickup','4x4','4×4'],trucks:['truck','trucks','pickup','4x4','4×4'],watercraft:['boat','boats','watercraft'],'4x4':['4x4','4×4','four wheel drive'],camper:['camper','campers','rv','airstream']};
 
@@ -243,8 +245,8 @@ export default function ZingpostsClient(){
       }
       if(!cancelled)setWebmcpStatus({checked:true,supported:supportedContexts.length>0,surfaces:contexts.map(item=>item.name),availableTools:available.length,registeredToolNames:[...registered],failedToolNames:[...failed]});
     };
-    void register();
-    return()=>{cancelled=true;for(const {context} of supportedContexts)for(const [name] of available)try{const result=context.unregisterTool?.(name);if(result&&typeof result.catch==='function')result.catch(()=>{});}catch{}};
+    void enqueueWebMCPRegistration(register);
+    return()=>{cancelled=true;void enqueueWebMCPRegistration(async()=>{for(const {context} of supportedContexts)for(const [name] of available)try{await Promise.resolve(context.unregisterTool?.(name));}catch{}})};
   },[authenticated,load,view,detailOpen]);
 
   useEffect(()=>{ if(!toast) return; const timer=setTimeout(()=>setToast(''),3200); return()=>clearTimeout(timer); },[toast]);
