@@ -1,3 +1,5 @@
+import { lookup } from 'node:dns/promises';
+
 type SqlMode='query'|'execute';
 
 function encodePlaceholders(statement:string,parameterCount:number){
@@ -60,11 +62,69 @@ class SupabaseDatabase{
 const database=new SupabaseDatabase();
 export function supabaseDatabase(){return database}
 
-export async function uploadListingImage(key:string,file:File){
+export async function uploadListingImage(key:string,file:Blob){
   const encoded=key.split('/').map(encodeURIComponent).join('/');
   const response=await supabaseRequest(`/storage/v1/object/listing-media/${encoded}`,{method:'POST',headers:{'content-type':file.type,'x-upsert':'false'},body:await file.arrayBuffer()});
   if(!response.ok){const body=await response.json().catch(()=>null) as {message?:string}|null;throw new Error(body?.message??'Image upload failed.');}
   return `/api/uploads/${encoded}`;
+}
+
+const REMOTE_IMAGE_TYPES=new Map([
+  ['image/jpeg','jpg'],
+  ['image/png','png'],
+  ['image/webp','webp'],
+  ['image/gif','gif'],
+]);
+
+function isPrivateAddress(address:string){
+  const normalized=address.toLowerCase();
+  if(normalized==='::1'||normalized.startsWith('fc')||normalized.startsWith('fd')||normalized.startsWith('fe8')||normalized.startsWith('fe9')||normalized.startsWith('fea')||normalized.startsWith('feb'))return true;
+  const ipv4=normalized.startsWith('::ffff:')?normalized.slice(7):normalized;
+  const octets=ipv4.split('.').map(Number);
+  if(octets.length!==4||octets.some(value=>!Number.isInteger(value)))return false;
+  const [a,b]=octets;
+  return a===0||a===10||a===127||a===169&&b===254||a===172&&b>=16&&b<=31||a===192&&b===168||a>=224;
+}
+
+async function assertPublicImageUrl(value:string){
+  let url:URL;
+  try{url=new URL(value);}catch{throw new Error('Image source must be a valid HTTPS URL.');}
+  if(url.protocol!=='https:')throw new Error('Image source must use HTTPS.');
+  if(url.username||url.password)throw new Error('Image source URLs cannot contain credentials.');
+  const hostname=url.hostname.toLowerCase();
+  if(hostname==='localhost'||hostname.endsWith('.local')||hostname.endsWith('.internal'))throw new Error('Image source must be a public HTTPS URL.');
+  if(/^\d{1,3}(\.\d{1,3}){3}$/.test(hostname)||hostname.includes(':'))throw new Error('Image source must use a public hostname rather than an IP address.');
+  const addresses=await lookup(hostname,{all:true}).catch(()=>[]);
+  if(!addresses.length)throw new Error('The image source hostname could not be resolved.');
+  if(addresses.some(({address})=>isPrivateAddress(address)))throw new Error('Image source must resolve only to public internet addresses.');
+  return url;
+}
+
+export async function importListingImageFromUrl(keyPrefix:string,source:string){
+  let url=await assertPublicImageUrl(source);
+  let response:Response|null=null;
+  for(let redirects=0;redirects<4;redirects+=1){
+    response=await fetch(url,{redirect:'manual',headers:{accept:'image/jpeg,image/png,image/webp,image/gif'},signal:AbortSignal.timeout(12_000)});
+    if(response.status>=300&&response.status<400){
+      const location=response.headers.get('location');
+      if(!location)throw new Error('The image source redirected without a destination.');
+      url=await assertPublicImageUrl(new URL(location,url).toString());
+      continue;
+    }
+    break;
+  }
+  if(!response||response.status>=300&&response.status<400)throw new Error('The image source redirected too many times.');
+  if(!response.ok)throw new Error(`The image source could not be downloaded (${response.status}).`);
+  const mimeType=(response.headers.get('content-type')??'').split(';')[0].trim().toLowerCase();
+  const extension=REMOTE_IMAGE_TYPES.get(mimeType);
+  if(!extension)throw new Error('The image source must return a JPEG, PNG, WebP, or GIF image.');
+  const declaredSize=Number(response.headers.get('content-length')??0);
+  if(declaredSize>8_000_000)throw new Error('Use an image under 8 MB.');
+  const bytes=await response.arrayBuffer();
+  if(bytes.byteLength>8_000_000)throw new Error('Use an image under 8 MB.');
+  const key=`${keyPrefix}-${crypto.randomUUID()}.${extension}`;
+  const storedUrl=await uploadListingImage(key,new Blob([bytes],{type:mimeType}));
+  return {url:storedUrl,key,sourceUrl:url.toString(),mimeType,bytes:bytes.byteLength};
 }
 
 export async function readListingImage(key:string){

@@ -70,7 +70,7 @@ const expanded = await action('set_navigation_collapsed', { collapsed: false });
 assert.equal(expanded.preferences.sidebarCollapsed, false);
 
 const capabilities = await action('get_site_capabilities');
-assert.equal(capabilities.tools.length, 85, 'expected the complete authenticated WebMCP catalog');
+assert.equal(capabilities.tools.length, 95, 'expected the complete authenticated WebMCP catalog');
 assert.equal(capabilities.publicTools.length, 11, 'expected the signed-out discovery and onboarding catalog');
 assert.equal(capabilities.architecture.builtInAI, false);
 assert.equal(capabilities.architecture.webmcpConnectionPersistent, false);
@@ -83,6 +83,9 @@ assert.equal(capabilities.supports.humanBoardInteraction, 'drag-to-left-rail');
 assert.equal(capabilities.supports.sharedHumanAgentWorkbench, true);
 assert.equal(capabilities.supports.idempotencyKeys, true);
 assert.equal(capabilities.supports.structuredErrors, true);
+assert.equal(capabilities.supports.agentImageIngestion, true);
+assert.equal(capabilities.supports.resumableWorkspaceInventory, true);
+assert.equal(capabilities.supports.untrustedContentAnnotations, true);
 
 const manifest = await publicAction('get_webmcp_manifest');
 assert.ok(manifest.groups.some((group) => group.id === 'views' && group.tools.includes('set_marketplace_view')));
@@ -131,6 +134,13 @@ const comparison = await action('compare_listings', { listingIds: search.results
 assert.equal(comparison.comparison.length, 3);
 
 const runId = Date.now().toString(36);
+const overview = await action('get_workspace_overview');
+assert.ok(overview.counts.boards >= 3, 'workspace overview should expose durable board inventory');
+assert.equal(overview.entryPoints.myListings, 'list_my_listings');
+const existingBoards = await action('list_boards');
+assert.ok(existingBoards.boards.every((item) => item.id && Array.isArray(item.items)), 'boards should be resumable without prior IDs');
+const existingSaved = await action('list_saved_items');
+assert.ok(Array.isArray(existingSaved.items));
 const boardKey = `board-${runId}`;
 const board = await action('create_board', { name: `Smoke board ${runId}`, description: 'Temporary verification board', color: '#3d6955', idempotencyKey: boardKey });
 const boardReplay = await action('create_board', { name: `Smoke board ${runId}`, description: 'Temporary verification board', color: '#3d6955', idempotencyKey: boardKey });
@@ -154,9 +164,16 @@ const humanResponse = await action('respond_to_collaboration_item', { itemId: re
 assert.equal(humanResponse.agentCanContinue, true);
 const collaborationState = await action('get_collaboration_session', { sessionId: collaboration.sessionId });
 assert.equal(collaborationState.items.find((item) => item.id === recommendation.itemId).status, 'accepted');
+const resumableSessions = await action('list_collaboration_sessions');
+assert.ok(resumableSessions.sessions.some((item) => item.id === collaboration.sessionId), 'collaboration sessions should be discoverable after creation');
 await action('update_collaboration_session', { sessionId: collaboration.sessionId, status: 'complete', summary: 'Human chose the Whaler for the next inspection step.' });
 
 const listingDraft = await action('create_listing_draft', { title: `Smoke listing ${runId}`, category: 'Boats', price: 1200, location: 'Richmond, VA', description: 'Unpublished trust-boundary test.' });
+const imageSource = process.env.ZINGPOSTS_TEST_IMAGE_URL ?? 'https://zingposts.com/images/cape-dory.jpg';
+const listingImage = await action('attach_listing_image_from_url', { listingId: listingDraft.listingId, sourceUrl: imageSource, sourceLabel: 'Zingposts test fixture', altText: 'A classic sailboat underway.' });
+assert.match(listingImage.image, /^\/api\/uploads\//, 'agent image ingestion should copy the image into Zingposts storage');
+const ownedListings = await action('list_my_listings', { status: 'draft' });
+assert.ok(ownedListings.listings.some((item) => item.id === listingDraft.listingId && item.image === listingImage.image), 'owned draft inventory should include the stored image');
 const attemptedPublishByUpdate = await action('update_listing_draft', { listingId: listingDraft.listingId, status: 'published', title: `Smoke listing ${runId}` });
 assert.equal(attemptedPublishByUpdate.status, 'draft', 'generic listing updates must not bypass the protected publish workflow');
 const publishGate = await action('request_listing_publish', { listingId: listingDraft.listingId, confirmed: true });
@@ -164,6 +181,8 @@ assert.equal(publishGate.confirmationRequired, true, 'an agent must not self-pub
 assert.equal(publishGate.humanRequired, true);
 
 const alert = await action('create_alert_draft', { name: `Smoke alert ${runId}`, query: '', criteria: { maxPrice: 15000, beforeYear: 1980 } });
+const alertInventory = await action('list_alerts');
+assert.ok(alertInventory.alerts.some((item) => item.id === alert.alertId), 'alert drafts should be discoverable after creation');
 const gate = await action('enable_alert', { alertId: alert.alertId });
 assert.equal(gate.confirmationRequired, true, 'alert activation must stop for human confirmation');
 const enabled = await action('enable_alert', { alertId: alert.alertId, confirmed: true }, { type: 'human', name: 'Smoke test human' });
@@ -182,6 +201,12 @@ assert.equal(selfConfirmation.humanRequired, true);
 const verification = await action('complete_account_verification', { email: initial.user.email }, { type: 'human', name: 'Smoke test human' });
 assert.equal(verification.verification.status, 'verified');
 await action('request_message_send', { messageId: draft.messageId, confirmed: true }, { type: 'human', name: 'Smoke test human' });
+const inbox = await action('list_conversations');
+assert.ok(inbox.conversations.some((item) => item.conversation.id === draft.conversationId), 'conversation inventory should preserve resumable message context');
+const research = await action('get_listing_research', { listingId: 'lst_whaler' });
+assert.ok(Array.isArray(research.notes), 'listing research should be readable through WebMCP');
+const tradeRooms = await action('list_trade_rooms');
+assert.ok(Array.isArray(tradeRooms.tradeRooms), 'trade rooms should be discoverable through WebMCP');
 
 const recent = await action('list_recent_agent_actions', { limit: 40 });
 const boardEvent = recent.activities.find((item) => item.action === 'create_board' && item.entity_id === board.boardId);
