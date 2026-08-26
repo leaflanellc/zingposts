@@ -555,7 +555,7 @@ function GuestWelcome({
                   <b>Open the link in your email</b>
                   <p>
                     No code is required. The link signs this browser in through
-                    Supabase.
+                    Supabase. If it does not appear shortly, check Spam.
                   </p>
                 </div>
                 <button
@@ -852,7 +852,8 @@ function AccountVerificationModal({
               <b>Open the link in your email</b>
               <p>
                 No code is required. Supabase will verify the address and
-                reconnect this workspace.
+                reconnect this workspace. If it does not appear shortly, check
+                Spam.
               </p>
             </div>
             <button
@@ -888,9 +889,8 @@ function AccountVerificationModal({
                 <b>{error}</b>
                 {/hourly window/i.test(error) && (
                   <span>
-                    Supabase’s built-in test mailer allows only two messages per
-                    hour. Wait for the limit to reset, then request one fresh
-                    link.
+                    Wait for the limit to reset, then request one fresh link.
+                    Repeated requests will not deliver sooner.
                   </span>
                 )}
               </div>
