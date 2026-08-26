@@ -35,7 +35,7 @@ The same state remains legible and editable in the human interface. Reasoning st
 - A canvas-first marketplace whose collapsible left rail contains search, listing actions, filters, view modes, navigation, and persistent board drop targets
 - Drag-to-board organization for people, with a click-to-board fallback for touch and accessibility, plus equivalent structured board actions for agents
 - Person-first and agent-first onboarding with replayable local sign-out
-- A single **Bring my agent** button that copies a complete connection-and-start prompt for the user’s chosen outside agent
+- A single **Bring my agent** button that copies a compatibility preflight plus connection-and-start prompt for the user’s chosen outside agent; it distinguishes browser setup, missing agent-runtime support or tab permission, sign-in, and successful WebMCP connection
 - A small contextual **WebMCP tools** guide that reports live browser readiness and successful registration, reflects signed-in versus public availability, shows the tools useful on the current page first, and keeps other page groups one click away
 - Scoped, revocable agent profiles and preferences
 - 85 declarative WebMCP tools registered on `document.modelContext` and `navigator.modelContext`
@@ -87,7 +87,7 @@ The action layer in `lib/scoutboard-store.ts` enforces ownership, records attrib
 
 WebMCP registration is page-scoped rather than a permanent connection. Zingposts persists the safe agent profile, scopes, preferences, workspace objects, verification state, and audit history. `connect_agent` works without an approval pause: anonymous agents receive public discovery plus a handoff, while agents in an authenticated browser receive safe workspace access immediately. Publishing listings, sending messages, submitting or responding to offers, and inviting trade participants require verified account state and a separate human confirmation.
 
-For the person-first path, the left rail has one **Bring my agent** button. It copies a prompt that tells the outside agent to open Zingposts, rediscover the current page tools, connect, inspect the existing workspace, and leave useful next steps in **Shared with agent**. For the agent-first path, the agent calls `connect_agent` publicly and opens the returned handoff for the person. Technical tool maps remain available at `/agents` for implementers and judges, but they are not part of the primary human navigation.
+For the person-first path, the left rail has one **Bring my agent** button. The copied prompt includes the current tab’s readiness snapshot, requires a fresh WebMCP discovery preflight, and tells the agent how to distinguish a browser without `modelContext` from an agent runtime that lacks WebMCP support or permission to the ready tab. Only after discovery succeeds does it connect, inspect the workspace, and leave useful next steps in **Shared with agent**. For the agent-first path, the agent calls `connect_agent` publicly and opens the returned handoff for the person. Technical tool maps remain available at `/agents` for implementers and judges, but they are not part of the primary human navigation.
 
 ## Architecture
 
