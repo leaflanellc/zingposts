@@ -31,7 +31,8 @@ async function initializeUser(user:AppUser){
   const count = await d1.prepare(`SELECT COUNT(*) AS count FROM listings`).first<{count:number}>();
   if (Number(count?.count ?? 0) === 0) await seed(user);
   const workspace = await d1.prepare(`SELECT COUNT(*) AS count FROM activity_events WHERE user_id=? AND action='seed_workspace'`).bind(user.userId).first<{count:number}>();
-  if(Number(workspace?.count??0)===0) await seedUserWorkspace(user);
+  const boards = await d1.prepare(`SELECT COUNT(*) AS count FROM boards WHERE user_id=?`).bind(user.userId).first<{count:number}>();
+  if(Number(workspace?.count??0)===0&&Number(boards?.count??0)===0) await seedUserWorkspace(user);
 }
 
 export async function ensureDatabase(user:AppUser){

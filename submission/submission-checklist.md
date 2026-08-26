@@ -18,8 +18,8 @@ Official deadline: **September 3, 2026 at 1:00 p.m. PDT**.
 
 ## After review
 
-- [ ] Make requested product/copy adjustments
-- [ ] Verify the final HTTPS deployment at `https://zingposts.com`
+- [x] Make requested product/copy adjustments
+- [x] Verify the final HTTPS deployment at `https://zingposts.com`
 - [x] Set `metadataBase` in `app/layout.tsx` to the production domain
 - [x] Create the public repository at `https://github.com/leaflanellc/zingposts`
 - [x] Confirm GitHub detects the MIT license
@@ -28,5 +28,5 @@ Official deadline: **September 3, 2026 at 1:00 p.m. PDT**.
 - [ ] Register/join at https://webmcp.devpost.com/
 - [ ] Complete eligibility and team details
 - [ ] Paste the final description and links into Devpost
-- [ ] Test the deployed WebMCP flow in ChatGPT’s in-app browser
+- [x] Test the deployed WebMCP flow in ChatGPT’s in-app browser
 - [ ] Submit before the deadline and save a copy of the final entry
