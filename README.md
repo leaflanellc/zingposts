@@ -35,13 +35,14 @@ The same state remains legible and editable in the human interface. Reasoning st
 - A canvas-first marketplace whose collapsible left rail contains search, listing actions, filters, view modes, navigation, and persistent board drop targets
 - Drag-to-board organization for people, with a click-to-board fallback for touch and accessibility, plus equivalent structured board actions for agents
 - Person-first and agent-first onboarding with replayable local sign-out
+- A single **Bring my agent** button that copies a complete connection-and-start prompt for the user’s chosen outside agent
 - Scoped, revocable agent profiles and preferences
 - 85 declarative WebMCP tools registered on `document.modelContext` and `navigator.modelContext`
 - Immediate safe-lane agent connection for discovery, organization, research, alerts, and drafts
 - Deferred account verification plus human confirmation before publishing or contacting marketplace participants
 - Eleven public tools available before sign-in for discovery, the grouped WebMCP manifest, interpreted alerts, public search, and agent-first handoff
-- A shared Agent Workbench for durable agent shortlists, recommendations, questions, human responses, and resumable work sessions
-- Live WebMCP activity pulses, structured errors, idempotent mutations, dry runs, exact-payload review, and stable deep links
+- A human-facing **Shared with agent** area for durable shortlists, recommendations, questions, human responses, and resumable work sessions
+- Live agent activity, structured errors, idempotent mutations, dry runs, exact-action review, and stable deep links
 - Durable interface preferences, including a collapsible navigation rail, full-screen sequential listing review, and agent-controllable marketplace canvas modes
 - Human confirmation tray for consequential actions
 - Attributed activity ledger and undo
@@ -81,7 +82,9 @@ The collaboration group is the showcase loop: `start_collaboration_session` open
 
 The action layer in `lib/scoutboard-store.ts` enforces ownership, records attribution, and turns consequential agent requests into pending confirmation records. The site never gives an agent a user's password. Pairing grants visible, revocable scopes.
 
-WebMCP registration is page-scoped rather than a permanent connection. Zingposts persists the safe agent profile, scopes, preferences, workspace objects, verification state, and audit history. `connect_agent` works without an approval pause: anonymous agents receive public discovery plus a handoff, while agents in an authenticated browser receive safe workspace access immediately. Publishing listings, sending messages, submitting or responding to offers, and inviting trade participants require verified account state and a separate human confirmation. A copyable skill starter tells outside agents to reopen the site, rediscover tools, verify authentication, and resume from Zingposts’ durable records. Scheduled monitoring should likewise reopen the page rather than assume a tab remains connected.
+WebMCP registration is page-scoped rather than a permanent connection. Zingposts persists the safe agent profile, scopes, preferences, workspace objects, verification state, and audit history. `connect_agent` works without an approval pause: anonymous agents receive public discovery plus a handoff, while agents in an authenticated browser receive safe workspace access immediately. Publishing listings, sending messages, submitting or responding to offers, and inviting trade participants require verified account state and a separate human confirmation.
+
+For the person-first path, the left rail has one **Bring my agent** button. It copies a prompt that tells the outside agent to open Zingposts, rediscover the current page tools, connect, inspect the existing workspace, and leave useful next steps in **Shared with agent**. For the agent-first path, the agent calls `connect_agent` publicly and opens the returned handoff for the person. Technical tool maps remain available at `/agents` for implementers and judges, but they are not part of the primary human navigation.
 
 ## Architecture
 

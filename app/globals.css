@@ -158,6 +158,10 @@ button,input { font:inherit; } button,a { -webkit-tap-highlight-color:transparen
 .sidebar-agent { width:100%; flex:none; text-align:left; }
 .sidebar-agent>span:nth-child(2) { min-width:0; display:flex; flex:1; flex-direction:column; gap:2px; }
 .sidebar-agent>b { color:#8a8c85; }
+.agent-invite { border-color:#b7cbbd; background:#f2f7f3; color:#30483d; transition:border-color .15s ease,background .15s ease,transform .15s ease; }
+.agent-invite:hover,.agent-invite:focus-visible { border-color:#779783; background:#eaf3ec; transform:translateY(-1px); }
+.agent-invite.copied { border-color:#5f9673; background:#e5f2e8; }
+.agent-invite.copied>b { color:#447557; font-size:13px; }
 .sidebar.collapsed .rail-copy,.sidebar.collapsed .account-menu,.sidebar.collapsed .sidebar-search input,.sidebar.collapsed .sidebar-create b,.sidebar.collapsed .rail-canvas-controls,.sidebar.collapsed .board-label { display:none; }
 .sidebar.collapsed .rail-brand-row { justify-content:center; }
 .sidebar.collapsed .sidebar-search { justify-content:center; padding:0; }

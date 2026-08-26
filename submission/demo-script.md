@@ -10,24 +10,24 @@ Show the canvas-first Browse page. Search for `boat`, switch quickly through Gal
 
 “Zingposts owns the listings and workflow. It has no LLM and no built-in agent. My outside agent gets a structured action surface through WebMCP.”
 
-## 0:18–0:42 — Either side can arrive first
+## 0:18–0:42 — One prompt, either arrival order
 
-Log out and click **My agent is here first**.
+While signed in, click **Bring my agent**. Paste the copied prompt into the outside agent.
 
-“Before I create a workspace, an agent can discover eleven public tools, search the marketplace, interpret an alert, and call `connect_agent` to prepare a private handoff. Or I can create the workspace first and connect my agent from inside.”
+“People should not have to understand MCP. One prompt tells my chosen agent to open Zingposts, discover the current tools, connect, inspect my workspace, and start useful work.”
 
-Show the four-step agent-first modal. Have the outside agent call `connect_agent`, then open the returned handoff path and create the workspace. Show that safe access attaches without a pairing-code ceremony.
+Briefly mention the reverse path: while signed out, have the outside agent call `connect_agent`, then open the returned handoff path for the person. Show that the handoff is already waiting and safe access attaches without a pairing-code ceremony.
 
 ## 0:42–1:32 — The shared workbench
 
-Open **Agent workbench**.
+Open **Shared with agent**.
 
 Ask the outside agent to:
 
 1. call `start_collaboration_session` with the objective “Choose a characterful old boat under $20,000”;
 2. search for boats and call `add_collaboration_item` with a three-listing recommendation, rationale, two or three options, and `requiresHumanResponse: true`.
 
-As the tool calls execute, point out the live WebMCP activity pulse. Show the recommendation in the shared canvas with real listing cards.
+As the tool calls execute, point out the live agent activity pulse. Show the recommendation in the shared canvas with real listing cards.
 
 “This is not a chat transcript. The agent has placed structured work on a durable marketplace canvas. It knows exactly when my judgment is needed.”
 
@@ -45,15 +45,13 @@ Show the unified attention queue, then open **Review exact action**. Point out w
 
 ## 2:05–2:28 — Trustworthy agent ergonomics
 
-Briefly show **Agent access** and the grouped tool map.
+Show **Activity & undo** and undo one reversible agent action. Keep the technical tool map out of the main human flow; it remains available directly at `/agents` for judges who want to inspect it.
 
 “The 85 tools are grouped by views, queries, actions, collaboration, and workflows. Mutations support idempotency, safe actions support dry runs, failures are structured, and every result returns a stable place in the human interface.”
 
-Show **Activity & undo** and undo one reversible agent action.
-
 ## 2:28–2:40 — Close
 
-Return to the workbench.
+Return to **Shared with agent**.
 
 “The agent does the breadth. The person supplies taste, permission, and commitment. Zingposts gives both of them the same durable marketplace objects to work on together.”
 
