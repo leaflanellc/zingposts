@@ -1,0 +1,6 @@
+import { NextResponse } from 'next/server';
+import { getGuestState, getOnboardingStatus, getState, runAction, runPublicAction } from '@/lib/scoutboard-store';
+import { currentUser } from '@/lib/session';
+
+export async function GET(request:Request){ try { const user=await currentUser(); const setupSessionId=new URL(request.url).searchParams.get('setup')??''; if(!user) return NextResponse.json(await getGuestState(setupSessionId)); const state=await getState(user); return NextResponse.json({...state,authenticated:true,authMode:process.env.NODE_ENV==='development'?'local-demo':'zingposts',pendingSetup:setupSessionId?await getOnboardingStatus(setupSessionId):null}); } catch(error){ return NextResponse.json({error:error instanceof Error?error.message:'Unable to load Zingposts'},{status:401}); } }
+export async function POST(request:Request){ try { const body=await request.json() as {action:string;input?:Record<string,unknown>;actor?:{type?:string;name?:string}}; const user=await currentUser(); const result=user?await runAction(user,body.action,body.input??{},body.actor??{}):await runPublicAction(body.action,body.input??{}); return NextResponse.json({ok:true,result}); } catch(error){ return NextResponse.json({ok:false,error:error instanceof Error?error.message:'Zingposts action failed'},{status:400}); } }

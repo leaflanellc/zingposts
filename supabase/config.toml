@@ -1,0 +1,11 @@
+project_id = "zingposts"
+
+[api]
+enabled = true
+schemas = ["public", "storage"]
+
+[db]
+major_version = 17
+
+[storage]
+enabled = true
