@@ -12,11 +12,12 @@ Zingposts contains no LLM and no built-in agent. It provides deterministic marke
 
 Marketplace search is usually a pile of filters. The harder work happens afterward: keeping candidates organized, researching condition and provenance, watching price changes, following up, negotiating, and sometimes structuring a multi-party trade.
 
-Zingposts exposes that durable marketplace workspace as 95 structured WebMCP tools. A user can point a local agent at the site and ask it to:
+Zingposts exposes that durable marketplace workspace as 98 structured WebMCP tools. A user can point a local agent at the site and ask it to:
 
 - search native inventory and track outside finds;
 - organize listings into flexible boards, tags, statuses, and rankings;
 - build cited research notebooks, inspection checklists, comparables, and risk logs;
+- record structured sold comparables, calculate transparent price and all-in-cost ranges, and save a private offer strategy;
 - draft alerts, seller messages, negotiation plans, offers, and trade scenarios;
 - pair with revocable scopes instead of receiving the user's password;
 - leave consequential actions—publication, notifications, messages, offers, and invitations—at an explicit human-confirmation gate;
@@ -39,7 +40,7 @@ The same state remains legible and editable in the human interface. Reasoning st
 - A single **Bring my agent** button that copies a compatibility preflight plus connection-and-start prompt for the user’s chosen outside agent; it distinguishes browser setup, missing agent-runtime support or tab permission, sign-in, and successful WebMCP connection
 - A small contextual **WebMCP tools** guide that reports live browser readiness and successful registration, reflects signed-in versus public availability, shows the tools useful on the current page first, and keeps other page groups one click away
 - Scoped, revocable agent profiles and preferences
-- 95 declarative WebMCP tools registered on `document.modelContext` and `navigator.modelContext`
+- 98 declarative WebMCP tools registered on `document.modelContext` and `navigator.modelContext`
 - Immediate safe-lane agent connection for discovery, organization, research, alerts, and drafts
 - Deferred account verification plus human confirmation before publishing or contacting marketplace participants
 - Eleven public tools available before sign-in for discovery, the grouped WebMCP manifest, interpreted alerts, public search, and agent-first handoff

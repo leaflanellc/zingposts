@@ -70,7 +70,7 @@ const expanded = await action('set_navigation_collapsed', { collapsed: false });
 assert.equal(expanded.preferences.sidebarCollapsed, false);
 
 const capabilities = await action('get_site_capabilities');
-assert.equal(capabilities.tools.length, 95, 'expected the complete authenticated WebMCP catalog');
+assert.equal(capabilities.tools.length, 98, 'expected the complete authenticated WebMCP catalog');
 assert.equal(capabilities.publicTools.length, 11, 'expected the signed-out discovery and onboarding catalog');
 assert.equal(capabilities.architecture.builtInAI, false);
 assert.equal(capabilities.architecture.webmcpConnectionPersistent, false);
@@ -96,6 +96,8 @@ assert.deepEqual(new Set(manifest.groups.flatMap((group) => group.tools)), new S
 const guide = await publicAction('get_connection_guide');
 assert.equal(guide.persistence.webmcp, 'page-scoped');
 assert.equal(guide.architecture.builtInAI, false);
+assert.match(guide.workspaceReturn.human, /same normalized email/);
+assert.match(guide.workspaceReturn.agent, /does not sign in with or retain the human email/);
 
 const publicConnection = await publicAction('connect_agent', { name: `Public smoke ${Date.now()}` });
 assert.equal(publicConnection.status, 'connected_public');
@@ -210,6 +212,17 @@ const inbox = await action('list_conversations');
 assert.ok(inbox.conversations.some((item) => item.conversation.id === draft.conversationId), 'conversation inventory should preserve resumable message context');
 const research = await action('get_listing_research', { listingId: 'lst_whaler' });
 assert.ok(Array.isArray(research.notes), 'listing research should be readable through WebMCP');
+const priceComparable = await action('record_price_comparable', { listingId: 'lst_whaler', title: `Comparable Whaler ${runId}`, soldPrice: 14250, soldDate: '2026-08-01', location: 'Norfolk, VA', condition: 'Good', sourceUrl: 'https://example.com/comparable', sourceLabel: 'Smoke comparable', notes: 'Similar hull and engine package.' });
+assert.equal(priceComparable.comparable.soldPrice, 14250);
+const priceResearch = await action('get_price_research', { listingId: 'lst_whaler' });
+assert.ok(priceResearch.comparables.some((item) => item.title === `Comparable Whaler ${runId}`), 'structured comparables should be resumable');
+const priceAnalysis = await action('analyze_price_and_offer', { listingId: 'lst_whaler', repairs: 1200, transport: 400, tax: 500, contingency: 600, targetDiscountPercent: 8, maximumAllInBudget: 16000 });
+assert.ok(priceAnalysis.suggested.targetOffer <= priceAnalysis.suggested.ceilingOffer, 'price analysis target should not exceed the ceiling');
+assert.equal(priceAnalysis.marketAnchorBasis, 'median_recorded_comparable');
+const offerPlan = await action('create_negotiation_plan', { listingId: 'lst_whaler', targetOffer: priceAnalysis.suggested.targetOffer, ceiling: priceAnalysis.suggested.ceilingOffer, strategy: 'Use cited condition and sold-price evidence.', contingencies: ['Inspection', 'Clear title'] });
+assert.equal(offerPlan.plan.type, 'offer_strategy');
+const resumedPriceResearch = await action('get_price_research', { listingId: 'lst_whaler' });
+assert.equal(resumedPriceResearch.latestOfferPlan.targetOffer, priceAnalysis.suggested.targetOffer, 'saved offer strategy should resume with the price notebook');
 const tradeRooms = await action('list_trade_rooms');
 assert.ok(Array.isArray(tradeRooms.tradeRooms), 'trade rooms should be discoverable through WebMCP');
 
