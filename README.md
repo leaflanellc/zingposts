@@ -28,7 +28,7 @@ The same state remains legible and editable in the human interface. Reasoning st
 
 ## Product tour
 
-- Native marketplace with 28 seeded listings and original project-owned imagery
+- Native marketplace with 12 seeded listings and original project-owned imagery
 - Buyer and seller workspaces
 - Listing photo uploads backed by private Supabase Storage
 - Agent image ingestion from permitted public HTTPS sources, copied into private Supabase Storage with attribution and alt text; unpublished drafts update seamlessly while live-listing media changes wait for verified human approval
