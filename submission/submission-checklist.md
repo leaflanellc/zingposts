@@ -19,12 +19,12 @@ Official deadline: **September 3, 2026 at 1:00 p.m. PDT**.
 ## After review
 
 - [ ] Make requested product/copy adjustments
-- [ ] Deploy to an HTTPS URL judges can access
+- [ ] Verify the final HTTPS deployment at `https://zingposts.com`
 - [x] Set `metadataBase` in `app/layout.tsx` to the production domain
-- [ ] Create a public GitHub, GitLab, or Bitbucket repository
-- [ ] Confirm the license is detected on the repository page
+- [x] Create the public repository at `https://github.com/leaflanellc/zingposts`
+- [x] Confirm GitHub detects the MIT license
 - [ ] Record a public or unlisted YouTube demo with audio, under three minutes
-- [ ] Replace all `ADD_*` placeholders in submission files
+- [ ] Add the YouTube URL, the only remaining `ADD_*` placeholder
 - [ ] Register/join at https://webmcp.devpost.com/
 - [ ] Complete eligibility and team details
 - [ ] Paste the final description and links into Devpost

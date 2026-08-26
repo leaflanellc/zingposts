@@ -2,7 +2,7 @@
 
 ## Agent-first path
 
-1. Open `ADD_DEPLOYED_URL` in a WebMCP-capable browser while signed out.
+1. Open `https://zingposts.com` in a WebMCP-capable browser while signed out.
 2. Ask your outside agent to inspect the available tools. It should find ten public tools.
 3. Call `get_site_capabilities` and confirm `builtInAI: false`.
 4. Call `connect_agent` with an agent name. Confirm it returns `connected_public`, `approvalRequired: false`, and a handoff path.

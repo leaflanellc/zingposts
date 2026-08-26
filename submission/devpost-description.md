@@ -68,6 +68,6 @@ Next we would add real-time notification delivery, richer seller reputation chec
 
 ## Submission links
 
-- Live app: `ADD_DEPLOYED_URL`
-- Public repository: `ADD_PUBLIC_REPOSITORY_URL`
+- Live app: `https://zingposts.com`
+- Public repository: `https://github.com/leaflanellc/zingposts`
 - Demo video: `ADD_PUBLIC_YOUTUBE_URL`
