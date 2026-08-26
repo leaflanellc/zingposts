@@ -12,7 +12,7 @@ Zingposts contains no LLM and no built-in agent. It provides deterministic marke
 
 Marketplace search is usually a pile of filters. The harder work happens afterward: keeping candidates organized, researching condition and provenance, watching price changes, following up, negotiating, and sometimes structuring a multi-party trade.
 
-Zingposts exposes that durable marketplace workspace as 98 structured WebMCP tools. A user can point a local agent at the site and ask it to:
+Zingposts exposes that durable marketplace workspace as 101 structured WebMCP tools through a compact front door and page-specific contextual catalogs. A user can point a local agent at the site and ask it to:
 
 - search native inventory and track outside finds;
 - organize listings into flexible boards, tags, statuses, and rankings;
@@ -40,7 +40,8 @@ The same state remains legible and editable in the human interface. Reasoning st
 - A single **Bring my agent** button that copies a compatibility preflight plus connection-and-start prompt for the user’s chosen outside agent; it distinguishes browser setup, missing agent-runtime support or tab permission, sign-in, and successful WebMCP connection
 - A small contextual **WebMCP tools** guide that reports live browser readiness and successful registration, reflects signed-in versus public availability, shows the tools useful on the current page first, and keeps other page groups one click away
 - Scoped, revocable agent profiles and preferences
-- 98 declarative WebMCP tools registered on `document.modelContext` and `navigator.modelContext`
+- 101 declarative WebMCP tools in the complete catalog, with a smaller relevant set registered for the current human-visible workspace
+- Progressive discovery through `get_capability_index`, `get_capability_group`, and `navigate_to_workspace`
 - Immediate safe-lane agent connection for discovery, organization, research, alerts, and drafts
 - Deferred account verification plus human confirmation before publishing or contacting marketplace participants
 - Eleven public tools available before sign-in for discovery, the grouped WebMCP manifest, interpreted alerts, public search, and agent-first handoff
