@@ -178,11 +178,12 @@ button,input { font:inherit; } button,a { -webkit-tap-highlight-color:transparen
 
 .listing-drag-preview { width:148px; height:58px; display:grid; grid-template-columns:58px minmax(0,1fr); overflow:hidden; border:1px solid rgba(255,255,255,.72); border-radius:11px; background:rgba(255,254,250,.96); color:#343833; box-shadow:0 14px 35px rgba(31,32,28,.25); pointer-events:none; }
 .listing-drag-preview.native { position:fixed; left:-1000px; top:-1000px; }
-.listing-drag-preview.pointer { position:fixed; z-index:200; }
+.listing-drag-preview.pointer { position:fixed; z-index:200; will-change:left,top; animation:drag-preview-in .12s ease-out; }
 .listing-drag-preview img { width:58px; height:58px; object-fit:cover; }
 .listing-drag-preview span { min-width:0; display:flex; flex-direction:column; justify-content:center; gap:4px; padding:7px 9px; }
 .listing-drag-preview b { overflow:hidden; font-size:9px; line-height:1.2; text-overflow:ellipsis; white-space:nowrap; }
 .listing-drag-preview small { color:#8a8c85; font-size:7px; }
+@keyframes drag-preview-in { from { opacity:0; transform:translateY(5px) scale(.92); } to { opacity:1; transform:none; } }
 .listing-board-badges { position:absolute; z-index:3; right:10px; bottom:10px; max-width:calc(100% - 92px); display:flex; justify-content:flex-end; gap:4px; }
 .listing-board-badge,.listing-board-more { height:20px; display:flex; align-items:center; gap:5px; overflow:hidden; border:1px solid color-mix(in srgb,var(--board-color) 58%,white); border-radius:11px; padding:0 7px; background:color-mix(in srgb,var(--board-color) 17%,rgba(255,255,255,.96)); color:#323631; box-shadow:0 2px 8px rgba(31,32,28,.12); }
 .listing-board-badge i { width:7px; height:7px; flex:none; border-radius:50%; background:var(--board-color); }
