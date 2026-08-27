@@ -28,6 +28,7 @@ export async function GET(request:Request){
     }
     if(!user){await supabase.auth.signOut();throw new Error('This verified email is not connected to a Zingposts workspace. Open the prototype workspace first, then verify it there.');}
     console.info(JSON.stringify({event:'auth_callback_completed',upgraded}));
+    destination.searchParams.set('auth_status',upgraded?'verified':'signed_in');
     const response=NextResponse.redirect(destination); response.cookies.set(SESSION_COOKIE,await encodeSession(user),sessionCookieOptions); if(upgraded)response.cookies.set('zingposts-just-verified','1',{path:'/',sameSite:'lax',maxAge:60,secure:process.env.NODE_ENV==='production'}); return response;
   }catch(cause){const message=cause instanceof Error?cause.message:'Unable to complete Supabase authentication.';console.error(JSON.stringify({event:'auth_callback_failed',message}));destination.searchParams.set('auth_error',message);return NextResponse.redirect(destination)}
 }
