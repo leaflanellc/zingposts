@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { currentUser } from '@/lib/session';
+import { currentUser, encodeAuthIntent } from '@/lib/session';
 import { authCallbackUrl } from '@/lib/site-url';
 import { supabaseAuthClient } from '@/lib/supabase-auth';
 
@@ -10,10 +10,11 @@ export async function POST(request:Request){
     if(!email||!email.includes('@'))return NextResponse.json({ok:false,error:'Enter a valid email address.'},{status:400});
     const workspaceUser=await currentUser();
     if(intent==='upgrade'&&(!workspaceUser||workspaceUser.authLevel==='verified-human'))return NextResponse.json({ok:false,error:'Open an unverified prototype workspace before upgrading it.'},{status:400});
-    const client=await supabaseAuthClient(); const callbackUrl=authCallbackUrl(request);
-    const {error}=await client.auth.signInWithOtp({email,options:{shouldCreateUser:intent==='upgrade',emailRedirectTo:callbackUrl,data:{display_name:workspaceUser?.displayName??String(body.name??'').trim(),zingposts_workspace_id:workspaceUser?.userId??null}}});
+    const client=await supabaseAuthClient(); const callbackUrl=new URL(authCallbackUrl(request));
+    callbackUrl.searchParams.set('intent',await encodeAuthIntent(intent,workspaceUser?.userId));
+    const {error}=await client.auth.signInWithOtp({email,options:{shouldCreateUser:intent==='upgrade',emailRedirectTo:callbackUrl.toString(),data:{display_name:workspaceUser?.displayName??String(body.name??'').trim()}}});
     if(error)throw error;
-    console.info(JSON.stringify({event:'auth_link_requested',intent,callbackUrl}));
+    console.info(JSON.stringify({event:'auth_link_requested',intent,callbackPath:callbackUrl.pathname}));
     return NextResponse.json({ok:true,email,intent,message:'Check your email for the secure sign-in link.'});
   }catch(error){
     const message=error instanceof Error?error.message:'Unknown authentication request error';

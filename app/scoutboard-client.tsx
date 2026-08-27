@@ -313,6 +313,7 @@ function GuestWelcome({
   const [busy, setBusy] = useState(false);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [code, setCode] = useState("");
   useEffect(() => {
     const authError = new URLSearchParams(window.location.search).get(
       "auth_error",
@@ -358,6 +359,25 @@ function GuestWelcome({
       }
     } catch (error) {
       setToast(error instanceof Error ? error.message : "Unable to continue.");
+    } finally {
+      setBusy(false);
+    }
+  };
+  const verifyCode = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setBusy(true);
+    try {
+      const response = await fetch("/api/auth/verify", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ email, token: code }),
+      });
+      const body = (await response.json()) as { error?: string };
+      if (!response.ok)
+        throw new Error(body.error ?? "Unable to verify the sign-in code.");
+      window.location.replace("/");
+    } catch (error) {
+      setToast(error instanceof Error ? error.message : "Unable to sign in.");
     } finally {
       setBusy(false);
     }
@@ -536,10 +556,27 @@ function GuestWelcome({
                 <div>
                   <b>Open the link in your email</b>
                   <p>
-                    No code is required. The link signs this browser in through
-                    Supabase. If it does not appear shortly, check Spam.
+                    The link works in any browser. You can also enter the code
+                    from the email below. If it does not appear shortly, check
+                    Spam.
                   </p>
                 </div>
+                <form className="email-code-form" onSubmit={verifyCode}>
+                  <label>
+                    Email code
+                    <input
+                      value={code}
+                      onChange={(event) => setCode(event.target.value.replace(/\D/g, "").slice(0, 10))}
+                      inputMode="numeric"
+                      autoComplete="one-time-code"
+                      placeholder="8-digit code"
+                      required
+                    />
+                  </label>
+                  <button className="primary-action" disabled={busy || code.length < 6}>
+                    {busy ? "Verifying…" : "Verify code"}
+                  </button>
+                </form>
                 <button
                   className="primary-action"
                   onClick={() => window.location.reload()}
@@ -774,6 +811,7 @@ function AccountVerificationModal({
   const [email, setEmail] = useState(state.user.email);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [code, setCode] = useState("");
   const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setBusy(true);
@@ -800,6 +838,26 @@ function AccountVerificationModal({
           ? cause.message
           : "Unable to verify this account.",
       );
+    } finally {
+      setBusy(false);
+    }
+  };
+  const verifyCode = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setBusy(true);
+    setError("");
+    try {
+      const response = await fetch("/api/auth/verify", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ email, token: code }),
+      });
+      const body = (await response.json()) as { error?: string };
+      if (!response.ok)
+        throw new Error(body.error ?? "Unable to verify the email code.");
+      window.location.replace("/");
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "Unable to verify the email code.");
     } finally {
       setBusy(false);
     }
@@ -833,11 +891,27 @@ function AccountVerificationModal({
             <div>
               <b>Open the link in your email</b>
               <p>
-                No code is required. Supabase will verify the address and
-                reconnect this workspace. If it does not appear shortly, check
-                Spam.
+                The link works in any browser. You can also enter the code from
+                the email below. If it does not appear shortly, check Spam.
               </p>
             </div>
+            <form className="email-code-form" onSubmit={verifyCode}>
+              <label>
+                Email code
+                <input
+                  value={code}
+                  onChange={(event) => setCode(event.target.value.replace(/\D/g, "").slice(0, 10))}
+                  inputMode="numeric"
+                  autoComplete="one-time-code"
+                  placeholder="8-digit code"
+                  required
+                />
+              </label>
+              <button className="primary-action" disabled={busy || code.length < 6}>
+                {busy ? "Verifying…" : "Verify code"}
+              </button>
+            </form>
+            {error && <div className="form-error" role="alert"><b>{error}</b></div>}
             <button
               className="primary-action"
               onClick={() => window.location.reload()}

@@ -8,7 +8,7 @@ export async function POST(request:Request){
   try{
     const body=await request.json() as {email?:string;token?:string};
     const email=String(body.email??'').trim().toLowerCase(); const token=String(body.token??'').replace(/\s+/g,'');
-    if(!email||!email.includes('@')||!/^[0-9]{6}$/.test(token))return NextResponse.json({ok:false,error:'Enter the email and six-digit code from Supabase.'},{status:400});
+    if(!email||!email.includes('@')||!/^[0-9]{6,10}$/.test(token))return NextResponse.json({ok:false,error:'Enter the numeric code from the Zingposts email.'},{status:400});
     const prototypeUser=await currentUser();
     const client=await supabaseAuthClient();
     const {data,error}=await client.auth.verifyOtp({email,token,type:'email'});

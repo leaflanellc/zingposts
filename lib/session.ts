@@ -5,6 +5,7 @@ import { currentSupabaseUser } from '@/lib/supabase-auth';
 
 export const SESSION_COOKIE='zingposts-session';
 const encoder=new TextEncoder();
+type AuthIntent={version:1;mode:'login'|'upgrade';workspaceUserId?:string;expiresAt:number};
 
 function secret(){
   const configured=process.env.SESSION_SECRET?.trim();
@@ -32,6 +33,25 @@ export async function encodeSession(user:AppUser){
   return `${payload}.${base64url(signature)}`;
 }
 
+export async function encodeAuthIntent(mode:'login'|'upgrade',workspaceUserId?:string){
+  const intent:AuthIntent={version:1,mode,workspaceUserId:mode==='upgrade'?workspaceUserId:undefined,expiresAt:Date.now()+15*60*1000};
+  const payload=base64url(JSON.stringify(intent));
+  const signature=new Uint8Array(await crypto.subtle.sign('HMAC',await signingKey(),encoder.encode(payload)));
+  return `${payload}.${base64url(signature)}`;
+}
+
+export async function decodeAuthIntent(value:string|undefined|null):Promise<AuthIntent|null>{
+  if(!value)return null;
+  const [payload,signature]=value.split('.'); if(!payload||!signature)return null;
+  const valid=await crypto.subtle.verify('HMAC',await signingKey(),Buffer.from(signature,'base64url'),encoder.encode(payload)); if(!valid)return null;
+  try{
+    const parsed=JSON.parse(Buffer.from(payload,'base64url').toString('utf8')) as Partial<AuthIntent>;
+    if(parsed.version!==1||!['login','upgrade'].includes(String(parsed.mode))||typeof parsed.expiresAt!=='number'||parsed.expiresAt<Date.now())return null;
+    if(parsed.mode==='upgrade'&&(!parsed.workspaceUserId||!parsed.workspaceUserId.startsWith('usr_')))return null;
+    return parsed as AuthIntent;
+  }catch{return null}
+}
+
 async function decodeSession(value:string):Promise<AppUser|null>{
   const [payload,signature]=value.split('.'); if(!payload||!signature)return null;
   const valid=await crypto.subtle.verify('HMAC',await signingKey(),Buffer.from(signature,'base64url'),encoder.encode(payload)); if(!valid)return null;
@@ -47,6 +67,12 @@ async function identityFor(column:'workspace_user_id'|'auth_user_id',value:strin
 
 async function storedUser(userId:string){
   return supabaseDatabase().prepare(`SELECT id,email,name FROM users WHERE id=?`).bind(userId).first<UserRow>();
+}
+
+export async function prototypeUserForVerification(userId:string):Promise<AppUser|null>{
+  if(await identityFor('workspace_user_id',userId))return null;
+  const user=await storedUser(userId); if(!user)return null;
+  return {userId:user.id,email:user.email,displayName:user.name,authLevel:'prototype'};
 }
 
 export async function verifiedUserForAuthUser(authUserId:string):Promise<AppUser|null>{

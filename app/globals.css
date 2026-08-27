@@ -311,6 +311,10 @@ body { font-size:14px; }
 .email-link-sent b { font-size:13px; }
 .email-link-sent p { margin:4px 0 0; color:#68736b; font-size:11px; line-height:1.5; }
 .email-link-sent>button { grid-column:1/-1; min-height:42px; border-radius:9px; font-size:11px; font-weight:700; }
+.email-code-form { grid-column:1/-1; display:grid; grid-template-columns:minmax(0,1fr) auto; gap:9px; align-items:end; border-top:1px solid #d9e4dc; padding-top:12px; }
+.email-code-form label { display:grid; gap:6px; color:#566159; font-size:10px; font-weight:700; }
+.email-code-form input { min-width:0; height:42px; border:1px solid #cbd5cd; border-radius:9px; padding:0 12px; background:#fff; color:#272b28; font-size:16px; font-weight:700; letter-spacing:.08em; }
+.email-code-form button { min-height:42px; border-radius:9px; padding:0 18px; white-space:nowrap; }
 
 .workbench-hero p { font-size:12px; }
 .workbench-loop span { font-size:10px; }
