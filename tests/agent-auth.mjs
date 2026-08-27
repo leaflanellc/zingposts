@@ -50,7 +50,7 @@ try{
   const cookie=`zingposts-session=anonymous; ${agentCookie}`;
   const auth=await api('get_auth_status',{},cookie); assert.equal(auth.response.ok,true); assert.equal(auth.body.result.authLevel,'verified-agent'); assert.equal(auth.body.result.supabaseAuthenticated,false);
   const canonical=await api('connect_agent',{name:'Spoofed second profile'},cookie); assert.equal(canonical.response.ok,true); assert.equal(canonical.body.result.agentId,agentId); assert.equal(canonical.body.result.name,'Integration agent');
-  const bootstrap=await api('get_agent_bootstrap',{activeCapability:'marketplace'},cookie); assert.equal(bootstrap.response.ok,true); assert.equal(bootstrap.body.result.canonicalAgent.agentId,agentId); assert.equal(bootstrap.body.result.canonicalAgent.name,'Integration agent');
+  const bootstrap=await api('get_agent_bootstrap',{activeCapability:'marketplace'},cookie); assert.equal(bootstrap.response.ok,true); assert.equal(bootstrap.body.result.canonicalAgent.id,agentId); assert.equal(bootstrap.body.result.canonicalAgent.name,'Integration agent');
   const inviteToken=randomBytes(32).toString('base64url'); const inviteHash=createHash('sha256').update(inviteToken).digest('base64url');
   result=await database.from('agent_auth_codes').insert({id:`ainvite_test_${runId}`,user_id:userId,agent_id:agentId,code_hash:inviteHash,created_by_auth_user_id:authUserId,created_at:timestamp,expires_at:expiresAt,used_at:null}); assert.equal(result.error,null,result.error?.message);
   const inviteRedeemed=await api('authenticate_agent',{inviteToken}); assert.equal(inviteRedeemed.response.ok,true,inviteRedeemed.body.error?.message); assert.equal(inviteRedeemed.body.result.agentId,agentId);
