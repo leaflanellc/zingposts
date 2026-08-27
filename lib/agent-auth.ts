@@ -15,22 +15,33 @@ async function hash(value:string){const digest=await crypto.subtle.digest('SHA-2
 function randomCode(){const bytes=crypto.getRandomValues(new Uint8Array(10));const value=[...bytes].map(byte=>CODE_ALPHABET[byte%CODE_ALPHABET.length]).join('');return `${value.slice(0,5)}-${value.slice(5)}`}
 function randomToken(){return Buffer.from(crypto.getRandomValues(new Uint8Array(32))).toString('base64url')}
 
-export const agentSessionCookieOptions={httpOnly:true,sameSite:'lax' as const,path:'/',maxAge:60*60*12,secure:process.env.NODE_ENV==='production'};
-
-export async function issueAgentAuthCode(user:AppUser,name:string,requestedScopes?:string[]){
-  if(user.authLevel!=='verified-human'||!user.supabaseUserId)throw new Error('Verify and sign in to the human account before issuing an agent code.');
+async function issueAgentCredential(user:AppUser,name:string,credential:string,requestedScopes?:string[]){
+  if(user.authLevel!=='verified-human'||!user.supabaseUserId)throw new Error('Verify and sign in to the human account before issuing an agent credential.');
   const database=supabaseDatabase(); const timestamp=now(); const expiresAt=new Date(Date.now()+10*60*1000).toISOString();
-  const agentId=identifier('agt'); const code=randomCode(); const codeHash=await hash(normalizeCode(code));
+  const agentId=identifier('agt'); const codeHash=await hash(credential);
   const safeScopes=['marketplace:read','workspace:write','research:write','alerts:draft','listing:draft','communication:draft'];
   const scopes=(requestedScopes?.length?requestedScopes:safeScopes).filter(scope=>safeScopes.includes(scope));
   await database.prepare(`INSERT INTO agent_connections (id,user_id,name,status,scopes_json,pairing_code,setup_json,created_at,last_seen_at) VALUES (?,?,?,?,?,?,?,?,?)`).bind(agentId,user.userId,name.trim()||'Outside agent','awaiting_auth',JSON.stringify(scopes),null,null,timestamp,null).run();
   await database.prepare(`INSERT INTO agent_auth_codes (id,user_id,agent_id,code_hash,created_by_auth_user_id,created_at,expires_at,used_at) VALUES (?,?,?,?,?,?,?,?)`).bind(identifier('acode'),user.userId,agentId,codeHash,user.supabaseUserId,timestamp,expiresAt,null).run();
-  return {agentId,code,expiresAt,expiresInSeconds:600,status:'awaiting_agent',scopes,oneTime:true};
+  return {agentId,expiresAt,expiresInSeconds:600,status:'awaiting_agent',scopes,oneTime:true};
+}
+
+export const agentSessionCookieOptions={httpOnly:true,sameSite:'lax' as const,path:'/',maxAge:60*60*12,secure:process.env.NODE_ENV==='production'};
+
+export async function issueAgentAuthCode(user:AppUser,name:string,requestedScopes?:string[]){
+  const code=randomCode();
+  return {...await issueAgentCredential(user,name,normalizeCode(code),requestedScopes),code,transport:'code' as const};
+}
+
+export async function issueAgentInvite(user:AppUser,name:string,requestedScopes?:string[]){
+  const inviteToken=randomToken();
+  return {...await issueAgentCredential(user,name,inviteToken,requestedScopes),inviteToken,invitePath:'/for-agents',transport:'fragment' as const};
 }
 
 export async function redeemAgentAuthCode(code:string){
-  const normalized=normalizeCode(code); if(normalized.length!==10)throw new Error('Enter the 10-character agent connection code.');
-  const codeHash=await hash(normalized); const timestamp=now();
+  const supplied=code.trim(); const normalized=normalizeCode(supplied); const credential=supplied.length<=12&&normalized.length===10?normalized:supplied;
+  if(credential.length!==10&&credential.length<32)throw new Error('Enter a valid agent connection code or open a fresh invite link.');
+  const codeHash=await hash(credential); const timestamp=now();
   const token=randomToken(); const tokenHash=await hash(token); const sessionId=identifier('ases'); const expiresAt=new Date(Date.now()+12*60*60*1000).toISOString();
   const response=await supabaseRequest('/rest/v1/rpc/redeem_agent_auth_code',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({p_code_hash:codeHash,p_session_id:sessionId,p_token_hash:tokenHash,p_now:timestamp,p_expires_at:expiresAt})});
   const records=await response.json().catch(()=>[]) as Array<Record<string,unknown>>|{message?:string};

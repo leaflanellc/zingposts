@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { createHash, randomUUID } from 'node:crypto';
+import { createHash, randomBytes, randomUUID } from 'node:crypto';
 import { createClient } from '@supabase/supabase-js';
 
 const base=process.env.ZINGPOSTS_URL??'http://localhost:3000';
@@ -49,11 +49,17 @@ try{
   assert.equal(concurrent.filter(attempt=>attempt.response.status===401).length,1,'the competing redemption should be rejected');
   const cookie=`zingposts-session=anonymous; ${agentCookie}`;
   const auth=await api('get_auth_status',{},cookie); assert.equal(auth.response.ok,true); assert.equal(auth.body.result.authLevel,'verified-agent'); assert.equal(auth.body.result.supabaseAuthenticated,false);
+  const canonical=await api('connect_agent',{name:'Spoofed second profile'},cookie); assert.equal(canonical.response.ok,true); assert.equal(canonical.body.result.agentId,agentId); assert.equal(canonical.body.result.name,'Integration agent');
+  const bootstrap=await api('get_agent_bootstrap',{activeCapability:'marketplace'},cookie); assert.equal(bootstrap.response.ok,true); assert.equal(bootstrap.body.result.canonicalAgent.agentId,agentId); assert.equal(bootstrap.body.result.canonicalAgent.name,'Integration agent');
+  const inviteToken=randomBytes(32).toString('base64url'); const inviteHash=createHash('sha256').update(inviteToken).digest('base64url');
+  result=await database.from('agent_auth_codes').insert({id:`ainvite_test_${runId}`,user_id:userId,agent_id:agentId,code_hash:inviteHash,created_by_auth_user_id:authUserId,created_at:timestamp,expires_at:expiresAt,used_at:null}); assert.equal(result.error,null,result.error?.message);
+  const inviteRedeemed=await api('authenticate_agent',{inviteToken}); assert.equal(inviteRedeemed.response.ok,true,inviteRedeemed.body.error?.message); assert.equal(inviteRedeemed.body.result.agentId,agentId);
+  const inviteReplay=await api('authenticate_agent',{inviteToken}); assert.equal(inviteReplay.response.status,401,'one-time invite replay should be rejected');
   const boards=await api('list_boards',{},cookie); assert.equal(boards.response.ok,true); assert.ok(boards.body.result.boards.length>=3);
   const consequential=await api('request_listing_publish',{listingId:'lst_nonexistent',confirmed:true},cookie); assert.equal(consequential.response.ok,true); assert.equal(consequential.body.result.confirmationRequired,true); assert.equal(consequential.body.result.humanRequired,true);
   await database.from('agent_connections').update({status:'revoked'}).eq('id',agentId); await database.from('agent_sessions').update({revoked_at:new Date().toISOString()}).eq('agent_id',agentId);
   const revoked=await api('list_boards',{},cookie); assert.equal(revoked.response.status,401,'revoked agent session should lose private access');
-  console.log(JSON.stringify({ok:true,codeSingleUse:true,concurrentRedemptionSafe:true,agentIdentityServerDerived:true,privateWorkspaceAccess:true,humanConfirmationStillRequired:true,revocationImmediate:true},null,2));
+  console.log(JSON.stringify({ok:true,codeSingleUse:true,inviteSingleUse:true,concurrentRedemptionSafe:true,agentIdentityServerDerived:true,canonicalProfileReused:true,bootstrapIdentity:true,privateWorkspaceAccess:true,humanConfirmationStillRequired:true,revocationImmediate:true},null,2));
 } finally {
   await cleanup();
 }

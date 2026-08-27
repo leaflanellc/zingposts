@@ -6,6 +6,7 @@ export default function sitemap():MetadataRoute.Sitemap{
   const modified=new Date();
   return [
     {url:'https://zingposts.com',lastModified:modified,changeFrequency:'daily',priority:1},
+    {url:'https://zingposts.com/for-agents',lastModified:modified,changeFrequency:'weekly',priority:.8},
     ...listingIds.map(id=>({url:`https://zingposts.com/listings/${id}`,lastModified:modified,changeFrequency:'weekly' as const,priority:.7})),
   ];
 }

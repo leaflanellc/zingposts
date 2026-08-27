@@ -12,7 +12,7 @@ Zingposts contains no LLM and no built-in agent. It provides deterministic marke
 
 Marketplace search is usually a pile of filters. The harder work happens afterward: keeping candidates organized, researching condition and provenance, watching price changes, following up, negotiating, and sometimes structuring a multi-party trade.
 
-Zingposts exposes that durable marketplace workspace as 103 structured WebMCP tools through a compact front door and page-specific contextual catalogs. A user can point a local agent at the site and ask it to:
+Zingposts exposes that durable marketplace workspace as 110 structured WebMCP tools through a compact persistent core and one navigation-independent focused capability pack. A user can point a local agent at the site and ask it to:
 
 - search native inventory and track outside finds;
 - organize listings into flexible boards, tags, statuses, and rankings;
@@ -37,18 +37,20 @@ The same state remains legible and editable in the human interface. Reasoning st
 - A canvas-first marketplace whose collapsible left rail contains search, listing actions, filters, view modes, navigation, and persistent board drop targets
 - Drag-to-board organization for people, with a click-to-board fallback for touch and accessibility, plus equivalent structured board actions for agents
 - Person-first and agent-first onboarding with replayable local sign-out
-- A single **Bring my agent** button that copies a compatibility preflight plus connection-and-start prompt for the user’s chosen outside agent; it distinguishes browser setup, missing agent-runtime support or tab permission, sign-in, and successful WebMCP connection
-- A small contextual **WebMCP tools** guide that reports live browser readiness and successful registration, reflects signed-in versus public availability, shows the tools useful on the current page first, and keeps other page groups one click away
+- A single **Bring my agent** button that copies the canonical public guide URL—or, on verified workspaces, an opaque single-use invite URL whose fragment is erased immediately after exchange
+- A public human-readable `/for-agents` guide plus machine-readable `/api/agent-guide`, including WebMCP preflight, bootstrap, capability activation, reconnect, collaboration, and safety guidance
+- A small **WebMCP tools** guide that reports live browser readiness, the focused capability pack, the person’s visible page, and other available packs without claiming navigation unlocks business tools
 - Supabase email-code authentication for verified people, with an editable email when a prototype workspace crosses the marketplace boundary
-- Separate 10-minute, single-use agent codes and 12-hour revocable agent sessions for verified workspaces
+- Separate 10-minute, single-use opaque invite URLs (with code fallback) and 12-hour revocable agent sessions for verified workspaces
 - Scoped, revocable agent profiles and preferences
-- 103 declarative WebMCP tools in the complete catalog, with a smaller relevant set registered for the current human-visible workspace
-- Progressive discovery through `get_capability_index`, `get_capability_group`, and `navigate_to_workspace`
+- 110 declarative WebMCP tools in the complete catalog, with a compact persistent core and one replaceable focused capability pack
+- One-call resume through `get_agent_bootstrap`, progressive discovery through `get_capability_index` and `get_capability_group`, navigation-independent `activate_capability`, and optional `open_for_human_review`
 - Immediate prototype-lane agent connection for discovery, organization, research, alerts, and drafts
 - A real verification boundary: Supabase authentication plus exact human confirmation before publishing or contacting marketplace participants
-- Fifteen public tools available before human sign-in for discovery, authentication, the grouped WebMCP manifest, interpreted alerts, public search, and agent-first handoff
+- Eighteen public tools available before human sign-in for bootstrap, discovery, authentication, interpreted alerts, public search, and agent-first handoff
 - A human-facing **Shared with agent** area for durable shortlists, recommendations, questions, human responses, and resumable work sessions
-- Live agent activity, structured errors, idempotent mutations, dry runs, exact-action review, and stable deep links
+- Canonical server-derived agent identity, live activity, structured WebMCP error results, strict workflow enums, idempotent mutations, version-conflict protection, exact-action review, and stable deep links
+- Isolated QA namespaces with exact artifact preview and human-approved cleanup
 - Durable interface preferences, including a collapsible navigation rail, full-screen sequential listing review, and agent-controllable marketplace canvas modes
 - Resumable workspace inventory tools for owned drafts, boards, saved items, alerts, research notebooks, collaboration sessions, conversations, and trade rooms
 - Required-field JSON schemas and `untrustedContentHint` annotations for tools that return marketplace or user-authored content
@@ -79,17 +81,17 @@ npm run test:smoke
 npm run build -- --webpack
 ```
 
-With Supabase test credentials in the environment, `npm run test:human-auth` verifies that the legacy prototype cookie stops working after account upgrade and that a real Supabase session resumes the workspace. `npm run test:agent-auth` verifies single-use code exchange, server-derived agent identity, private workspace access, non-bypassable human approval, and immediate revocation.
+With Supabase test credentials in the environment, `npm run test:human-auth` verifies that the legacy prototype cookie stops working after account upgrade and that a real Supabase session resumes the workspace. `npm run test:agent-auth` verifies single-use code and invite exchange, canonical server-derived identity and profile reuse, bootstrap, private workspace access, non-bypassable human approval, and immediate revocation.
 
-The smoke test checks seeded persistence, prototype authentication state, the WebMCP catalog, category-aware search, interpreted alerts, resumable workspace inventories, agent-side listing image ingestion, idempotency, dry runs, agent-created organization, a full agent-question/human-response loop, the non-bypassable verification and confirmation gates, interface preferences, the activity ledger, deep links, and undo. The onboarding tests additionally exercise anonymous public connection, agent-first handoff attachment, and person-first prototype connection.
+The smoke test uses its own workspace and QA namespace. It checks bootstrap, exact manifest coverage, capability activation without navigation, the Virginia sailboat alert regression, field-aware truck relevance, strict state enums, structured missing-record errors, optimistic concurrency, a human-agent response loop, consequential-action gates, and exact namespaced cleanup without executing marketplace commitments.
 
 ## WebMCP implementation
 
-The browser registration lives in `app/scoutboard-client.tsx`. Each capability has a distinct name, description, JSON input schema, safety annotation, and executor. An authenticated human or agent page exposes the full catalog; a signed-out page exposes fifteen public discovery, authentication, and onboarding tools. Tool execution dispatches to the same durable action layer used by the human UI.
+The browser registration lives in `app/scoutboard-client.tsx`. Each capability has a distinct name, description, JSON input schema, safety annotation, and executor. Registration uses AbortSignal-managed lifetimes: the persistent core stays stable and capability activation replaces the focused pack instead of accumulating route catalogs. Tool execution dispatches to the same durable action layer used by the human UI and returns WebMCP-native structured success or error results.
 
 The bottom-right guide inspects the active tab rather than assuming WebMCP is configured. It reports whether a usable `modelContext` surface is present, counts successfully registered tools, and shows setup guidance when the browser API is unavailable. The guide is visible before sign-in as well as inside the workspace, and labels tools as ready, login-locked, read-only, state-changing, or separately approval-gated. It deliberately does not claim that an outside agent is connected: a web page can verify its browser registration surface, while agent access to the tab remains the responsibility of the user-selected agent runtime.
 
-`get_webmcp_manifest` organizes the catalog into views, queries, actions, and workflows. `get_workspace_overview` routes a returning agent to explicit inventory tools instead of requiring it to remember identifiers from an earlier tab. `get_marketplace_view` and `set_marketplace_view` let a scoped outside agent coordinate the same gallery, focus, or thumbnail canvas the person sees. People can drag a gallery card, focus image, or thumbnail directly onto a board in the left rail; `add_listings_to_board` is the agent’s deterministic equivalent.
+`get_agent_bootstrap` returns authentication, canonical identity, workspace overview, attention, active collaboration, capabilities, and guide version in one call. `get_webmcp_manifest` lists every tool exactly once. `activate_capability` replaces the focused tool pack without navigating; `open_for_human_review` is optional. `get_marketplace_view` and `set_marketplace_view` coordinate the same gallery, focus, or thumbnail canvas the person sees. People can drag any canvas item onto a board in the left rail; `add_listings_to_board` is the agent’s deterministic equivalent.
 
 For selling, `list_my_listings` exposes unpublished drafts and `attach_listing_image_from_url` safely imports a user-permitted public image into the listing-media bucket, preserving source, attribution, accessible alt text, and an undo record. Owned drafts update immediately; the same tool converts a live-listing media change into an exact verification and one-time human-approval request so an agent cannot silently alter the public presentation.
 
@@ -97,9 +99,9 @@ The collaboration group is the showcase loop: `start_collaboration_session` open
 
 The action layer in `lib/scoutboard-store.ts` enforces ownership, derives actor identity on the server, records attribution, and turns consequential requests into pending confirmation records. A prototype workspace can be upgraded only by opening the secure Supabase link sent to the real email address. From then on, deterministic-email and legacy-cookie access are disabled. The human returns through Supabase; the agent authenticates separately through `authenticate_agent` with a code the verified human created through `create_agent_auth_code`.
 
-WebMCP registration is page-scoped rather than a permanent connection. Zingposts persists agent profiles, scopes, preferences, workspace objects, verified identity, and audit history. Anonymous agents receive public discovery plus a prototype handoff. Verified private work requires the agent’s own expiring session; revoking an agent immediately revokes its sessions. Publishing listings, sending messages, submitting or responding to offers, and inviting trade participants still require a separate, exact human confirmation even when both parties are authenticated.
+WebMCP registration belongs to the application document rather than a permanent network connection. The document keeps a stable core and swaps focused capability packs independently of route navigation. Zingposts persists agent profiles, scopes, preferences, workspace objects, verified identity, versions, and audit history. Anonymous agents receive public discovery plus a prototype handoff. Verified private work requires the agent’s own expiring session; revoking an agent immediately revokes its sessions. Publishing listings, sending messages, submitting or responding to offers, enabling notifications, and inviting trade participants still require separate exact human confirmation.
 
-For the person-first path, the left rail has one **Bring my agent** button. On a verified workspace it issues a one-use code and places it directly in the copied prompt; the agent exchanges it immediately and discards it. The prompt also includes the tab’s readiness snapshot, requires a fresh WebMCP preflight, and distinguishes missing browser support from missing agent-runtime permission. For the agent-first path, the agent can call `connect_agent` publicly and open the returned handoff for the person; a verified private workspace still requires a code issued by that person. Technical tool maps remain available at `/agents` for implementers and judges, but they are not part of the primary human navigation.
+For the person-first path, the left rail has one **Bring my agent** button. A prototype workspace copies `/for-agents`; a verified workspace copies a one-use invite URL. Its opaque credential is carried only in the URL fragment, exchanged once, and removed from browser history immediately. The public guide tells the agent how to detect missing browser or runtime support and begin with `get_agent_bootstrap`. For the agent-first path, the agent can call `connect_agent` publicly and open the returned handoff for the person. Technical tool maps remain at `/agents`; the canonical operational guide is `/for-agents` with JSON at `/api/agent-guide`.
 
 ## Architecture
 

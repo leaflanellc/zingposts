@@ -10,15 +10,15 @@ Show the canvas-first Browse page. Search for `boat`, switch quickly through Gal
 
 “Zingposts owns the listings and workflow. It has no LLM and no built-in agent. My outside agent gets a structured action surface through WebMCP.”
 
-## 0:18–0:48 — One prompt, either arrival order
+## 0:18–0:48 — One link, either arrival order
 
-While signed in, click **Bring my agent**. Paste the copied prompt into the outside agent.
+While signed in, click **Bring my agent**. Paste the copied one-use `/for-agents#invite=…` URL into the outside agent.
 
-“People should not have to understand MCP. One prompt tells my chosen agent to open Zingposts, verify that its browser can use WebMCP, discover the current tools, authenticate, inspect my workspace, and start useful work.”
+“People should not have to understand MCP. One link authenticates my chosen agent, opens the canonical public guide, and tells it to verify WebMCP and call one bootstrap tool.”
 
-Show the one-use, 10-minute agent code in the copied prompt and have the outside agent exchange it with `authenticate_agent`. Point out that the agent receives its own expiring, revocable session—never the person’s Supabase login.
+Show the page exchange and erase the opaque fragment automatically, then have the agent rediscover tools and call `get_agent_bootstrap`. Point out that the agent receives its own expiring, revocable session—never the person’s Supabase login. A ten-minute code remains only as fallback.
 
-Briefly mention the reverse path: while signed out, an outside agent can inspect the fifteen public tools, call `connect_agent`, and open the returned prototype handoff for the person. Prototype research and organization stay frictionless; a verified private workspace always requires a code issued by its person.
+Briefly mention the reverse path: while signed out, an outside agent can inspect eighteen public tools, call `get_agent_bootstrap`, then `connect_agent`, and open the returned prototype handoff for the person.
 
 ## 0:48–1:32 — The shared workbench
 
@@ -47,9 +47,9 @@ Show the unified attention queue, then open **Review exact action**. Point out w
 
 ## 2:08–2:30 — Trustworthy agent ergonomics
 
-Open the small **WebMCP tools** guide in the bottom-right corner. Show that it leads with tools relevant to the current page and keeps other page groups collapsed. Then show **Activity & undo** and undo one reversible agent action. The complete technical map remains available from the guide for judges who want it.
+Open the small **WebMCP tools** guide. Show the stable core, active capability pack, and the person’s independently visible page. Have the agent call `activate_capability` and show that the focused tools change without navigation or accumulation. Then show **Activity & undo** and undo one reversible action. The public agent guide is linked for judges.
 
-“The 103 tools use progressive discovery and are grouped by views, queries, actions, collaboration, and workflows. Mutations support idempotency, safe actions support dry runs, failures are structured, and every result returns a stable place in the human interface.”
+“The 110 tools use progressive discovery: one persistent bootstrap core plus one focused pack. Mutations support idempotency and versions, failures are structured, and human-review navigation stays optional.”
 
 ## 2:30–2:40 — Close
 
