@@ -95,10 +95,10 @@ const message=await action('draft_seller_message',{listingId:'lst_whaler',body:'
 const messageGate=await action('request_message_send',{messageId:message.messageId,qaRunId:qa.qaRunId});
 assert.equal(messageGate.confirmationRequired,true);assert.equal(messageGate.humanRequired,true);
 const badConversation=await request('update_negotiation_status',{conversationId:message.conversationId,status:'qa-planning'});
-assert.equal(badConversation.response.status,400);assert.equal(badConversation.body.error.code,'INVALID_INPUT');
+assert.equal(badConversation.response.status,400);assert.equal(badConversation.body.error.code,'INVALID_TRANSITION');
 const trade=await action('create_trade_room',{title:`QA trade ${runLabel}`,summary:'Private test room',qaRunId:qa.qaRunId});
 const badTrade=await request('record_trade_decision',{tradeId:trade.tradeId,decision:'qa-reviewed',expectedVersion:trade.version});
-assert.equal(badTrade.response.status,400);assert.equal(badTrade.body.error.code,'INVALID_INPUT');
+assert.equal(badTrade.response.status,400);assert.equal(badTrade.body.error.code,'INVALID_TRANSITION');
 const missing=await request('get_conversation',{conversationId:'con_missing'});
 assert.equal(missing.response.status,404);assert.equal(missing.body.error.code,'NOT_FOUND');assert.equal(typeof missing.body.error.details,'object');
 
