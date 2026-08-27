@@ -14,7 +14,13 @@
     Permissions-Policy = "camera=(), microphone=(), geolocation=()"
 
 [[headers]]
-  for = "/for-agents*"
+  for = "/for-agents"
+  [headers.values]
+    Cache-Control = "no-store"
+    Referrer-Policy = "no-referrer"
+
+[[headers]]
+  for = "/for-agents/*"
   [headers.values]
     Cache-Control = "no-store"
     Referrer-Policy = "no-referrer"

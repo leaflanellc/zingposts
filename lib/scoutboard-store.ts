@@ -25,7 +25,7 @@ const CONVERSATION_TRANSITIONS:Record<string,string[]>={active:['waiting_buyer',
 const TRADE_TRANSITIONS:Record<string,string[]>={draft:['reviewing','cancelled'],reviewing:['draft','ready_for_invites','declined','cancelled'],ready_for_invites:['active','declined','cancelled'],active:['complete','declined','cancelled'],complete:[],declined:[],cancelled:[]};
 const SEARCH_STOP_WORDS = new Set(['a','an','and','find','for','good','in','looking','me','near','of','old','the','under','vintage','with']);
 const SEARCH_SYNONYMS:Record<string,string[]> = {
-  boat:['boat','boats','watercraft'],boats:['boat','boats','watercraft'],watercraft:['boat','boats','watercraft'],
+  boat:['boat','boats','watercraft','sailboat','sailboats'],boats:['boat','boats','watercraft','sailboat','sailboats'],watercraft:['boat','boats','watercraft'],sailboat:['sailboat','sailboats','boat'],sailboats:['sailboat','sailboats','boat'],
   truck:['truck','trucks','pickup','4x4','4×4'],trucks:['truck','trucks','pickup','4x4','4×4'],pickup:['truck','trucks','pickup'],
   '4x4':['4x4','4×4','four wheel drive'],car:['car','cars','automobile'],cars:['car','cars','automobile'],
   camper:['camper','campers','rv','airstream'],campers:['camper','campers','rv','airstream'],
@@ -39,7 +39,7 @@ function searchTokens(query:string){
 
 function inferCategory(query:string){
   const q=query.toLowerCase();
-  if(/\b(boat|boats|watercraft|marine|sailboat)\b/.test(q))return 'Boats';
+  if(/\b(boat|boats|watercraft|marine|sailboat|sailboats)\b/.test(q))return 'Boats';
   if(/\b(car|cars|truck|trucks|pickup|4x4|4×4|jeep|automobile)\b/.test(q))return 'Cars & trucks';
   if(/\b(camper|campers|rv|airstream)\b/.test(q))return 'Campers';
   if(/\b(machine|machinery|lathe|tool)\b/.test(q))return 'Machinery';

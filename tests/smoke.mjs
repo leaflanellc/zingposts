@@ -53,17 +53,19 @@ assert.equal(humanView.path,'/listings/lst_whaler#research');
 
 const agentGuide=await fetch(`${base}/api/agent-guide`,{cache:'no-store'});assert.equal(agentGuide.ok,true);const guide=await agentGuide.json();
 assert.equal(guide.canonicalPath,'/for-agents');assert.equal(guide.architecture.registration,'persistent core plus a navigation-independent activated capability pack');
+const qa=await action('start_qa_run',{label:`Smoke ${runLabel}`});
+const qualifyingAlertListing=await action('import_listing_url',{url:`https://example.test/qa-sailboat-${runLabel}`,title:`QA 1988 Catalina sailboat ${runLabel}`,year:1988,category:'Boats',price:1850,location:'Norfolk, VA',description:'Namespaced alert-matching test artifact.',qaRunId:qa.qaRunId});
 const sailboatAlert=await publicAction('interpret_alert',{query:'Virginia sailboats under $2,000'});
 assert.equal(sailboatAlert.interpretation.criteria.category,'Boats');
 assert.equal(sailboatAlert.interpretation.criteria.maxPrice,2000);
 assert.equal(sailboatAlert.interpretation.criteria.location,'VA');
 assert.ok(sailboatAlert.interpretation.plainLanguage.includes('Location: VA'));
 assert.ok(sailboatAlert.previewCount>=1,'Virginia sailboat alert should match seeded inventory');
+assert.ok(sailboatAlert.matches.some(item=>item.id===qualifyingAlertListing.listingId),'alert should return the qualifying namespaced listing');
 const truckSearch=await publicAction('search_marketplace',{query:'old trucks'});
 assert.ok(truckSearch.results.some(item=>/F-?100|truck|pickup/i.test(`${item.title} ${item.model??''}`)),'old-truck search should return a truck');
 assert.ok(!truckSearch.results.some(item=>/BMW 2002/i.test(item.title)),'old-truck search should not return the BMW');
 
-const qa=await action('start_qa_run',{label:`Smoke ${runLabel}`});
 const board=await action('create_board',{name:`QA board ${runLabel}`,description:'Isolated smoke artifact',color:'#3d6955',qaRunId:qa.qaRunId});
 const selectedIds=initial.listings.filter(item=>item.status==='published').slice(0,2).map(item=>item.id);
 const added=await action('add_listings_to_board',{boardId:board.boardId,listingIds:selectedIds,expectedVersion:board.version});
