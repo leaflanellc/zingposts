@@ -453,7 +453,7 @@ export async function runAction(user:AppUser,action:string,input:Input={},actor:
     return {count:items.length+confirmations.length,collaborationItems:items,consequentialActions:confirmations,deepLink:'/workbench',next:items.length?'Wait for the person to respond, then call get_collaboration_session.':'No human decision is currently blocking safe work.'};
   }
   if (action==='respond_to_collaboration_item') {
-    if(actorType!=='human')throw new Error('Only the signed-in person can resolve a human decision request.');
+    if(actorType!=='human')throw new ActionError('HUMAN_REQUIRED','Only the signed-in person can resolve a human decision request.');
     const itemId=String(input.itemId??''); const item=await d1.prepare(`SELECT * FROM collaboration_items WHERE id=? AND user_id=?`).bind(itemId,user.userId).first<Record<string,unknown>>(); if(!item)throw new Error('Collaboration item not found.');
     const decision=String(input.decision??'answered'); if(!['answered','accepted','declined','deferred'].includes(decision))throw invalidInput('Collaboration decision must be answered, accepted, declined, or deferred.',{field:'decision',allowedValues:['answered','accepted','declined','deferred']}); const response={decision,response:String(input.response??''),selectedOption:input.selectedOption??null,responder:user.displayName,respondedAt:timestamp};
     await d1.prepare(`UPDATE collaboration_items SET status=?,response_json=?,updated_at=? WHERE id=? AND user_id=?`).bind(decision,json(response),timestamp,itemId,user.userId).run();

@@ -54,6 +54,8 @@ assert.equal(humanView.path,'/listings/lst_whaler#research');
 const agentGuide=await fetch(`${base}/api/agent-guide`,{cache:'no-store'});assert.equal(agentGuide.ok,true);const guide=await agentGuide.json();
 assert.equal(guide.canonicalPath,'/for-agents');assert.equal(guide.architecture.registration,'persistent core plus a navigation-independent activated capability pack');
 const qa=await action('start_qa_run',{label:`Smoke ${runLabel}`});
+let qaCleaned=false;
+try {
 const qualifyingAlertListing=await action('import_listing_url',{url:`https://example.test/qa-sailboat-${runLabel}`,title:`QA 1988 Catalina sailboat ${runLabel}`,year:1988,category:'Boats',price:1850,location:'Norfolk, VA',description:'Namespaced alert-matching test artifact.',qaRunId:qa.qaRunId});
 const sailboatAlert=await publicAction('interpret_alert',{query:'Virginia sailboats under $2,000'});
 assert.equal(sailboatAlert.interpretation.criteria.category,'Boats');
@@ -75,7 +77,9 @@ assert.equal(staleBoard.response.status,409);assert.equal(staleBoard.body.error.
 
 const collaboration=await action('start_collaboration_session',{objective:'QA human-agent loop',listingIds:selectedIds,qaRunId:qa.qaRunId});
 const item=await action('add_collaboration_item',{sessionId:collaboration.sessionId,kind:'question',title:'Choose a lead',body:'Which item should we research first?',listingIds:selectedIds,options:['First','Second'],requiresHumanResponse:true,expectedVersion:collaboration.version,qaRunId:qa.qaRunId});
-const invalidDecision=await request('respond_to_collaboration_item',{itemId:item.itemId,decision:'qa-reviewed'});
+const agentDecision=await request('respond_to_collaboration_item',{itemId:item.itemId,decision:'answered'});
+assert.equal(agentDecision.response.status,400);assert.equal(agentDecision.body.error.code,'HUMAN_REQUIRED');
+const invalidDecision=await request('respond_to_collaboration_item',{itemId:item.itemId,decision:'qa-reviewed'},{type:'human',name:'Ignored human label'});
 assert.equal(invalidDecision.response.status,400);assert.equal(invalidDecision.body.error.code,'INVALID_INPUT');
 const response=await action('respond_to_collaboration_item',{itemId:item.itemId,decision:'answered',response:'Research the first item.',expectedVersion:item.version},{type:'human',name:'Ignored human label'});
 assert.equal(response.agentCanContinue,true);
@@ -104,6 +108,10 @@ const preview=await action('preview_qa_cleanup',{qaRunId:qa.qaRunId});
 assert.ok(preview.count>=8);assert.equal(preview.scope,'Only records registered to this QA run are eligible.');
 const cleaned=await action('request_qa_cleanup',{qaRunId:qa.qaRunId,confirmed:true},{type:'human',name:'Ignored human label'});
 assert.equal(cleaned.status,'cleaned');assert.equal(cleaned.removed,preview.count);
+qaCleaned=true;
 const afterCleanup=await action('preview_qa_cleanup',{qaRunId:qa.qaRunId});assert.equal(afterCleanup.count,0);
 
 console.log(JSON.stringify({ok:true,seededListings:initial.listings.length,webmcpTools:capabilities.tools.length,manifestUnique:true,bootstrap:true,guide:true,capabilityActivationWithoutNavigation:true,alertRegression:true,searchRelevance:true,structuredErrors:true,concurrency:true,qaCleanup:true,consequentialActionsExecuted:false},null,2));
+} finally {
+  if(!qaCleaned) await request('request_qa_cleanup',{qaRunId:qa.qaRunId,confirmed:true},{type:'human',name:'Zingposts QA cleanup'}).catch(()=>null);
+}
