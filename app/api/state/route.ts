@@ -23,8 +23,11 @@ export async function POST(request:Request){ try { const body=await request.json
     let user=await currentUser(); let actor:{type:string;name:string;agentId?:string};
     if(body.actor?.type==='agent'){
       const session=await currentAgentSession(user?.userId);
-      if(user?.authLevel==='verified-human'&&!session)throw new Error('Agent authentication required. Ask the signed-in user for a new one-time agent code.');
       if(!user&&session)user=await workspaceUserForAgent(session.userId);
-      actor={type:'agent',name:session?.name??String(body.actor.name??'Prototype WebMCP agent'),agentId:session?.agentId};
+      actor=session
+        ? {type:'agent',name:session.name,agentId:session.agentId}
+        : user
+          ? {type:'agent',name:`Browser agent via ${user.displayName}`}
+          : {type:'agent',name:'Unauthenticated WebMCP agent'};
     } else actor={type:'human',name:user?.displayName??'Zingposts user'};
     const result=user?await runAction(user,body.action,input,actor):await runPublicAction(body.action,input); return NextResponse.json({ok:true,result,meta:{action:body.action,toolContractVersion:WEBMCP_TOOL_CONTRACT_VERSION,idempotencyKey:input.idempotencyKey??null}}); } catch(error){ const code=errorCode(error); const structured=error instanceof ActionError?error:null; return NextResponse.json({ok:false,error:{code,message:error instanceof Error?error.message:'Zingposts action failed',retryable:structured?.retryable??code==='ACTION_FAILED',details:structured?.details??{}}},{status:code==='NOT_FOUND'?404:['AUTHENTICATION_REQUIRED','AGENT_AUTHENTICATION_REQUIRED'].includes(code)?401:code==='CONFLICT'?409:400}); } }

@@ -3,12 +3,12 @@
 ## Agent-first path
 
 1. Open `https://zingposts.com` in a WebMCP-capable browser while signed out.
-2. Ask your outside agent to inspect the available tools. It should find eighteen public tools, including `get_agent_bootstrap`, `activate_capability`, and `authenticate_agent`.
-3. Call `get_agent_bootstrap`; confirm `builtInAI: false` through its capability links and that authentication, workspace, attention, active collaboration, capabilities, and guide version are explicit.
-4. Call `connect_agent` with an agent name. Confirm it returns `connected_public`, `approvalRequired: false`, and a handoff path.
+2. Ask your outside agent to inspect the available tools. It should find exactly five setup tools: `get_agent_bootstrap`, `authenticate_agent`, `start_agent_onboarding`, `get_onboarding_status`, and `open_for_human_review`.
+3. Call `get_agent_bootstrap`; confirm it reports `setup-only`, no workspace data, and the canonical guide URL.
+4. Call `start_agent_onboarding` with an agent name. Confirm it returns `awaiting_user`, `approvalRequired: false`, and a handoff path.
 5. Open the returned `handoffPath` and create or resume a prototype workspace. Safe prototype work attaches without a scope-approval click.
-6. If that workspace is already verified, click **Bring my agent**, open the copied one-use `/for-agents#invite=…` URL, and verify that the fragment disappears immediately after exchange and private tools unlock. A fresh fallback code should also work exactly once.
-7. Optionally open `/agents` directly and verify the active, revocable connection profile. This technical page is intentionally outside the primary human navigation.
+6. After sign-in, rediscover tools in the same browser and verify the safe workspace catalog appears without an agent code. Call `get_agent_bootstrap` and confirm the canonical identity is `Browser agent via …`.
+7. Optionally open `/agents` and create a one-use code or invite for separate-browser access. Verify that independent session is expiring and revocable. This advanced technical page is intentionally outside the primary human navigation.
 
 ## Person-first path
 
@@ -17,8 +17,8 @@
 3. Verify `/for-agents` clearly explains WebMCP preflight, `get_agent_bootstrap`, capability activation, human review, reconnect, and safety; verify `/api/agent-guide` returns the same versioned contract as JSON.
 4. Ask the outside agent to follow the guide from the authenticated page.
 5. In a prototype workspace, verify safe work begins immediately. At the first publish/contact boundary, replace the test email, follow the Supabase verification email, and confirm the account changes to **Supabase account**.
-6. Click **Bring my agent** again. Confirm the verified URL contains an opaque fragment, the guide exchanges and erases it, and the URL cannot be reused.
-7. Revoke the connection and verify its private access ends immediately without changing or sharing the human’s Supabase session.
+6. Click **Bring my agent** again. Confirm it copies the short `/for-agents` URL without a credential or private session data.
+7. Verify browser-delegated access ends when the person signs out. Separately verify that an optional independent agent session can be revoked without changing the person’s Supabase session.
 
 ## Collaboration checks
 
@@ -33,7 +33,7 @@
 - Open the bottom-right **WebMCP tools** guide on Browse, a listing detail, Alerts, and Shared with agent. Verify it distinguishes the active capability pack from the person’s visible page and links to `/for-agents`.
 - Ask the agent to search, compare, create a board, and add research; verify that the UI updates to the same durable records.
 - Ask it to draft a message or offer; verify that sending/submission first requires a Supabase-verified workspace, then requires a separate exact human confirmation. An authenticated agent call with `confirmed: true` must remain blocked.
-- Click **Bring my agent** and verify the copied value is only the canonical guide URL or an opaque one-use invite URL—not a long prompt or exposed MCP catalog.
+- Click **Bring my agent** and verify the copied value is only the canonical guide URL—not a long prompt, credential, or exposed MCP catalog.
 - Start a QA run, create test artifacts with its `qaRunId`, preview the exact cleanup set, and verify cleanup requires one human confirmation and cannot target unrelated records.
 - Confirm that no control claims Zingposts is generating “agent picks” or running a resident model.
 - Open **Activity & undo** to inspect attribution and undo a reversible action.

@@ -10,15 +10,15 @@ Show the canvas-first Browse page. Search for `boat`, switch quickly through Gal
 
 “Zingposts owns the listings and workflow. It has no LLM and no built-in agent. My outside agent gets a structured action surface through WebMCP.”
 
-## 0:18–0:48 — One link, either arrival order
+## 0:18–0:48 — One URL, no second login
 
-While signed in, click **Bring my agent**. Paste the copied one-use `/for-agents#invite=…` URL into the outside agent.
+While signed in, click **Bring my agent**. Paste the copied `/for-agents` URL into the outside agent that can access this browser.
 
-“People should not have to understand MCP. One link authenticates my chosen agent, opens the canonical public guide, and tells it to verify WebMCP and call one bootstrap tool.”
+“People should not have to understand MCP. One URL opens the canonical guide. Because I am already signed in, safe workspace tools appear in this browser without another agent-login ceremony.”
 
-Show the page exchange and erase the opaque fragment automatically, then have the agent rediscover tools and call `get_agent_bootstrap`. Point out that the agent receives its own expiring, revocable session—never the person’s Supabase login. A ten-minute code remains only as fallback.
+Have the agent rediscover tools and call `get_agent_bootstrap`. Show the server-derived identity `Browser agent via …`, the workspace overview, and the attention queue. Point out that browser delegation ends with the person’s browser session; a one-use invite or ten-minute code remains an advanced option for separate-browser or unattended work.
 
-Briefly mention the reverse path: while signed out, an outside agent can inspect eighteen public tools, call `get_agent_bootstrap`, then `connect_agent`, and open the returned prototype handoff for the person.
+Briefly mention the reverse path: while signed out, an outside agent sees only five setup tools, calls `get_agent_bootstrap`, then `start_agent_onboarding`, and opens the returned handoff for the person. After sign-in it rediscovers the workspace tools.
 
 ## 0:48–1:32 — The shared workbench
 
@@ -41,7 +41,7 @@ Show that the returned result contains the exact human response and that the ses
 
 Ask the agent to draft a seller message based on the chosen boat and request that it be sent.
 
-“Inside a prototype workspace, research, organization, alerts, and drafts stay fluid. The first real marketplace action asks me to replace a test email if needed and verify through Supabase. After that, both person and agent must authenticate independently.”
+“Inside the signed-in workspace, research, organization, alerts, and drafts stay fluid. The first real marketplace action asks me to replace a test email if needed and verify through Supabase. The agent still cannot approve its own outbound action.”
 
 Show the unified attention queue, then open **Review exact action**. Point out who prepared it, the recipient, the exact message, and the raw payload. Approve once or decline. Mention that even an authenticated agent supplying `confirmed: true` cannot bypass this separate human gate.
 

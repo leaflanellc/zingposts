@@ -16,11 +16,15 @@ async function publicAction(name,input={}){const result=await request(name,input
 
 const initialResponse=await fetch(`${base}/api/state`,{headers:{cookie:sessionCookie}});assert.equal(initialResponse.ok,true);const initial=await initialResponse.json();
 assert.ok(initial.listings.length>=12,'seed marketplace missing');
+const guestResponse=await fetch(`${base}/api/state`,{headers:{cookie:'zingposts-session=anonymous'}});assert.equal(guestResponse.ok,true);const guest=await guestResponse.json();
+assert.deepEqual(new Set(guest.publicTools),new Set(['get_agent_bootstrap','authenticate_agent','start_agent_onboarding','get_onboarding_status','open_for_human_review']));
 const capabilities=await action('get_site_capabilities');
 assert.equal(capabilities.architecture.builtInAI,false);
 assert.equal(capabilities.architecture.businessToolsRouteScoped,false);
 assert.equal(capabilities.supports.navigationIndependentCapabilityActivation,true);
 assert.equal(capabilities.supports.expiringAgentInviteUrls,true);
+assert.equal(capabilities.supports.browserSessionAgentDelegation,true);
+assert.equal(capabilities.architecture.signedOutToolSurface,'setup-only');
 assert.equal(capabilities.supports.qaNamespaces,true);
 assert.equal(capabilities.supports.optimisticConcurrency,true);
 assert.ok(capabilities.tools.includes('update_board'));
@@ -29,13 +33,20 @@ assert.ok(capabilities.tools.includes('request_qa_cleanup'));
 
 const publicBootstrap=await publicAction('get_agent_bootstrap',{activeCapability:'marketplace'});
 assert.equal(publicBootstrap.authentication.authenticated,false);
+assert.equal(publicBootstrap.authentication.agentAccess,'setup-only');
 assert.equal(publicBootstrap.guide.url,'/for-agents');
+assert.deepEqual(new Set(publicBootstrap.setup.availableTools),new Set(guest.publicTools));
+const blockedPublicSearch=await request('search_marketplace',{query:'boats'},{type:'agent',name:'Public QA'},'zingposts-session=anonymous');
+assert.equal(blockedPublicSearch.response.status,401);assert.equal(blockedPublicSearch.body.error.code,'AUTHENTICATION_REQUIRED');
 const bootstrap=await action('get_agent_bootstrap',{activeCapability:'marketplace'});
 assert.equal(bootstrap.authentication.authenticated,true);
+assert.equal(bootstrap.canonicalAgent.id,'browser_session');
+assert.equal(bootstrap.canonicalAgent.name,'Browser agent via Zingposts QA runner');
+assert.equal(bootstrap.canonicalAgent.access,'browser-delegated');
 assert.ok(bootstrap.workspace.counts);
 assert.ok(bootstrap.capabilities.groups.some(group=>group.id==='listing'));
 
-const manifest=await publicAction('get_webmcp_manifest',{activeCapability:'marketplace'});
+const manifest=await action('get_webmcp_manifest',{activeCapability:'marketplace'});
 assert.equal(manifest.progressiveDiscovery.strategy,'persistent_core_plus_activated_capability');
 assert.equal(manifest.progressiveDiscovery.activeCapability,'marketplace');
 const organizedTools=manifest.groups.flatMap(group=>group.tools);
@@ -57,14 +68,14 @@ const qa=await action('start_qa_run',{label:`Smoke ${runLabel}`});
 let qaCleaned=false;
 try {
 const qualifyingAlertListing=await action('import_listing_url',{url:`https://example.test/qa-sailboat-${runLabel}`,title:`QA 1988 Catalina sailboat ${runLabel}`,year:1988,category:'Boats',price:1850,location:'Norfolk, VA',description:'Namespaced alert-matching test artifact.',qaRunId:qa.qaRunId});
-const sailboatAlert=await publicAction('interpret_alert',{query:'Virginia sailboats under $2,000'});
+const sailboatAlert=await action('interpret_alert',{query:'Virginia sailboats under $2,000'});
 assert.equal(sailboatAlert.interpretation.criteria.category,'Boats');
 assert.equal(sailboatAlert.interpretation.criteria.maxPrice,2000);
 assert.equal(sailboatAlert.interpretation.criteria.location,'VA');
 assert.ok(sailboatAlert.interpretation.plainLanguage.includes('Location: VA'));
 assert.ok(sailboatAlert.previewCount>=1,'Virginia sailboat alert should match seeded inventory');
 assert.ok(sailboatAlert.matches.some(item=>item.id===qualifyingAlertListing.listingId),'alert should return the qualifying namespaced listing');
-const truckSearch=await publicAction('search_marketplace',{query:'old trucks'});
+const truckSearch=await action('search_marketplace',{query:'old trucks'});
 assert.ok(truckSearch.results.some(item=>/F-?100|truck|pickup/i.test(`${item.title} ${item.model??''}`)),'old-truck search should return a truck');
 assert.ok(!truckSearch.results.some(item=>/BMW 2002/i.test(item.title)),'old-truck search should not return the BMW');
 
@@ -111,7 +122,7 @@ assert.equal(cleaned.status,'cleaned');assert.equal(cleaned.removed,preview.coun
 qaCleaned=true;
 const afterCleanup=await action('preview_qa_cleanup',{qaRunId:qa.qaRunId});assert.equal(afterCleanup.count,0);
 
-console.log(JSON.stringify({ok:true,seededListings:initial.listings.length,webmcpTools:capabilities.tools.length,manifestUnique:true,bootstrap:true,guide:true,capabilityActivationWithoutNavigation:true,alertRegression:true,searchRelevance:true,structuredErrors:true,concurrency:true,qaCleanup:true,consequentialActionsExecuted:false},null,2));
+console.log(JSON.stringify({ok:true,seededListings:initial.listings.length,webmcpTools:capabilities.tools.length,signedOutSetupTools:guest.publicTools.length,signedOutMarketplaceBlocked:true,browserSessionDelegation:true,manifestUnique:true,bootstrap:true,guide:true,capabilityActivationWithoutNavigation:true,alertRegression:true,searchRelevance:true,structuredErrors:true,concurrency:true,qaCleanup:true,consequentialActionsExecuted:false},null,2));
 } finally {
   if(!qaCleaned) await request('request_qa_cleanup',{qaRunId:qa.qaRunId,confirmed:true},{type:'human',name:'Zingposts QA cleanup'}).catch(()=>null);
 }

@@ -6,7 +6,7 @@ type Status='idle'|'connecting'|'connected'|'failed';
 
 export default function AgentInviteClient(){
   const [status,setStatus]=useState<Status>('idle');
-  const [message,setMessage]=useState('No private invite was included. Use the public WebMCP tools to start or ask the person for a new invite.');
+  const [message,setMessage]=useState('Use the five setup tools while signed out. In the person’s signed-in browser, rediscover WebMCP tools and begin safe workspace work without another code.');
   useEffect(()=>{
     const params=new URLSearchParams(window.location.hash.slice(1));
     const inviteToken=params.get('invite');
@@ -22,5 +22,5 @@ export default function AgentInviteClient(){
     });
     return()=>{cancelled=true};
   },[]);
-  return <section className={`agent-invite-status ${status}`} aria-live="polite"><span>{status==='connected'?'✓':status==='failed'?'!':status==='connecting'?'…':'↗'}</span><div><b>{status==='connected'?'Private agent session connected':status==='failed'?'Invite unavailable':status==='connecting'?'Connecting agent':'Public guide ready'}</b><p>{message}</p></div></section>;
+  return <section className={`agent-invite-status ${status}`} aria-live="polite"><span>{status==='connected'?'✓':status==='failed'?'!':status==='connecting'?'…':'↗'}</span><div><b>{status==='connected'?'Independent agent session connected':status==='failed'?'Invite unavailable':status==='connecting'?'Connecting agent':'Setup guide ready'}</b><p>{message}</p></div></section>;
 }

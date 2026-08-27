@@ -1,5 +1,5 @@
-export const AGENT_GUIDE_VERSION='2026-08-26.1';
-export const WEBMCP_TOOL_CONTRACT_VERSION='2026-08-26.6';
+export const AGENT_GUIDE_VERSION='2026-08-26.2';
+export const WEBMCP_TOOL_CONTRACT_VERSION='2026-08-26.7';
 
 export const AGENT_GUIDE={
   name:'Zingposts outside-agent guide',
@@ -20,15 +20,15 @@ export const AGENT_GUIDE={
     'Use Zingposts WebMCP tools for workspace changes instead of DOM automation.',
   ],
   start:[
-    'Call get_agent_bootstrap once. It returns authentication, canonical agent identity, workspace overview, attention, active collaboration, capabilities, and guide version.',
+    'Call get_agent_bootstrap once. While signed out it returns only setup guidance. After the person signs in, rediscover tools and call it again to resume the workspace.',
     'Call activate_capability when a focused typed tool pack is needed. Capability activation does not navigate or change the person’s screen.',
     'Use open_for_human_review only when showing the person a listing, board, session, conversation, alert, or trade would help collaboration.',
   ],
   authentication:{
-    agentFirst:'Use the public bootstrap and marketplace tools, then prepare a handoff for the person with start_agent_onboarding.',
-    humanFirst:'Open the single-use invite URL supplied by the person. The fragment credential is exchanged once, removed immediately, and never stored.',
-    fallback:'If an invite link cannot be opened, ask the person for a fresh ten-minute code and call authenticate_agent once.',
-    persistence:'Verified agent sessions are separate from the human Supabase session, expire, and can be revoked.',
+    signedOut:'Only setup tools are available. Call get_agent_bootstrap, then start_agent_onboarding if the person has not opened a workspace yet.',
+    sameBrowser:'Once the person signs in, safe private tools become available in that browser document. Calls are attributed as a browser agent acting through the signed-in person; no extra agent code is required.',
+    unattended:'For a separate browser or work that must continue without the person’s signed-in tab, use a one-use invite or fallback code to create an expiring, revocable agent session.',
+    persistence:'The workspace persists. Browser-delegated access ends with the person’s browser session; independent agent sessions expire or can be revoked.',
   },
   collaboration:{
     sameTab:'Backend-backed actions may run without navigation while the person browses. The visible state updates after agent changes.',
@@ -43,7 +43,7 @@ export const AGENT_GUIDE={
   returnLater:[
     'Reopen Zingposts and rediscover the current WebMCP registry; do not rely on a cached catalog.',
     'Call get_agent_bootstrap and resume from durable workspace identifiers and the attention queue.',
-    'If authentication expired or was revoked, request a new invite or code from the person.',
+    'If the person is signed out, ask them to sign in. Use a fresh invite or code only for unattended or separate-browser access.',
   ],
   skillStarter:[
     'Open the saved Zingposts URL and rediscover WebMCP tools.',
