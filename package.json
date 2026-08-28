@@ -11,6 +11,7 @@
     "start": "next start",
     "lint": "eslint . --ignore-pattern dist --ignore-pattern .next",
     "test:types": "tsc --noEmit --incremental false",
+    "test:search": "node tests/search-parity.mjs",
     "test:smoke": "node tests/smoke.mjs",
     "test:agent-auth": "node tests/agent-auth.mjs",
     "test:human-auth": "node tests/human-auth.mjs"
