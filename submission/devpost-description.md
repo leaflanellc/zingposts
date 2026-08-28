@@ -16,9 +16,13 @@ Zingposts is a complete peer-to-peer marketplace and durable workspace for inter
 
 People can browse realistic native inventory, create and publish listings, upload photos, save finds, build boards, set alerts, keep research notebooks, message sellers, prepare offers, and create structured multi-party trade rooms. Outside finds can be tracked without confusing them with Zingposts-owned inventory.
 
-A connected outside agent receives a compact persistent core plus one focused pack drawn from 110 structured WebMCP tools. It can search with compound criteria, compare candidates, organize boards, tag and rank finds, record cited research and inspection risks, monitor price changes, draft communications and offers, calculate acquisition cost, propose trade scenarios, and coordinate the shared gallery, focus, or thumbnail canvas. The human uses the same structure through a canvas-first interface. Zingposts itself contains no LLM.
+A connected outside agent receives a compact persistent core plus one focused pack drawn from 121 structured WebMCP tools. It can search with compound criteria, compare candidates, organize boards, tag and rank finds, record cited research and inspection risks, monitor price changes, draft communications and offers, calculate acquisition cost, propose trade scenarios, and coordinate the shared gallery, focus, or thumbnail canvas. The human uses the same structure through a canvas-first interface. Zingposts itself contains no LLM.
 
 The centerpiece is the shared canvas: an outside agent opens a durable session, places a shortlist, recommendation, or focused question beside the marketplace objects, and pauses only when human judgment matters. The person can inspect the exact listings and rationale, choose an option or add context, and return structured guidance. The agent reads that durable response on its next tool call and continues. This is turn-taking over shared marketplace objects, not a chatbot transcript.
+
+The loop now extends across visits. `get_workspace_resume` returns the last acknowledged checkpoint, everything that changed since, structured blockers, human responses, proposal status, and safe next actions. An agent can acknowledge the checkpoint only after processing it, so “come back later” is an explicit protocol rather than a hope that conversation context survived.
+
+For broad edits, the agent can prepare a sourced, versioned change set instead of making a trail of one-off mutations. Zingposts previews each proposed change in plain language, checks the expected object versions, and lets the person selectively accept only the changes they want. Agents cannot approve their own change sets. Completed deals can be recorded as private outcomes, and transparent aggregate patterns report counts, prices, and reasons without inventing a model-generated score.
 
 Either side can arrive first. A person can explore immediately in a prototype workspace, then replace a test email and verify the real address through Supabase only when work reaches the marketplace boundary. One **Bring my agent** click copies the canonical guide URL. Or an unauthenticated agent can inspect five setup-only tools and open a prototype handoff for the person. Once the person signs in, safe private tools appear automatically to an outside agent operating that browser document. Independent 12-hour revocable sessions remain available through one-use invites or codes for separate-browser or unattended work.
 
@@ -36,7 +40,7 @@ That makes the product meaningfully better with an agent—not merely automatabl
 
 Zingposts uses React 19 and Next.js on Netlify. Supabase Auth provides verified human sessions, Supabase Postgres holds marketplace, identity, agent-session, and workflow state, and Supabase Storage holds listing photos. Versioned SQL migrations keep direct browser access locked behind row-level security.
 
-The browser client exposes 110 declarative tools through the WebMCP `modelContext` surface, but only five setup tools while signed out. After the person signs in, AbortSignal-managed registration keeps a compact persistent core plus one replaceable focused capability pack, so navigation never accumulates an oversized registry or silently unlocks business actions. `get_agent_bootstrap` returns setup guidance while signed out, then canonical browser-delegated identity, workspace, attention, active collaboration, capability index, and guide version after sign-in. `activate_capability` switches the focused pack without moving the person; `open_for_human_review` is optional.
+The browser client exposes 121 declarative tools through the WebMCP `modelContext` surface, but only five setup tools while signed out. After the person signs in, AbortSignal-managed registration keeps a compact persistent core plus one replaceable focused capability pack, so navigation never accumulates an oversized registry or silently unlocks business actions. `get_agent_bootstrap` returns setup guidance while signed out, then canonical browser-delegated identity, workspace, attention, active collaboration, capability index, and guide version after sign-in. `activate_capability` switches the focused pack without moving the person; `open_for_human_review` is optional.
 
 The action layer derives canonical human and agent identity on the server, prevents duplicate profiles, enforces ownership and state-transition enums, creates reviewable drafts, writes attributed activity, stores inverse operations for undo, supports idempotency keys and optimistic versions, returns stable deep links and WebMCP-native structured errors, and converts consequential operations into pending confirmations. Isolated QA runs register only their own artifacts, provide an exact cleanup preview, and require human approval before deletion.
 
@@ -51,9 +55,12 @@ We also designed external-listing tracking so provenance stays honest. Zingposts
 ## Accomplishments
 
 - A coherent marketplace, not a WebMCP proof of concept
-- 110 tools spanning authentication, onboarding, shared work sessions, canvas views, discovery, organization, negotiation, and multi-party trade
+- 121 tools spanning authentication, onboarding, resumable work sessions, versioned proposals, outcomes, canvas views, discovery, organization, negotiation, and multi-party trade
 - Agent-first and person-first onboarding with a five-tool setup surface before human sign-in
 - Durable agent-to-human-to-agent turn-taking with a unified attention queue
+- Explicit resume checkpoints and structured blockers for work that continues across agent runs
+- Sourced, versioned change sets with semantic previews and selective human acceptance
+- Private outcome recording with transparent, non-AI aggregate patterns
 - Live agent activity, exact-payload approval, idempotency, dry runs, structured errors, and stable deep links
 - No built-in AI or model dependency
 - Supabase human authentication plus opaque invite URLs, code fallback, and single-use, expiring, revocable agent sessions—without password or session sharing

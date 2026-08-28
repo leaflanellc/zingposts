@@ -12,7 +12,7 @@ Zingposts contains no LLM and no built-in agent. It provides deterministic marke
 
 Marketplace search is usually a pile of filters. The harder work happens afterward: keeping candidates organized, researching condition and provenance, watching price changes, following up, negotiating, and sometimes structuring a multi-party trade.
 
-Zingposts exposes that durable marketplace workspace as 110 structured WebMCP tools through a compact persistent core and one navigation-independent focused capability pack. A user can point a local agent at the site and ask it to:
+Zingposts exposes that durable marketplace workspace as 121 structured WebMCP tools through a compact persistent core and one navigation-independent focused capability pack. A user can point a local agent at the site and ask it to:
 
 - search native inventory and track outside finds;
 - organize listings into flexible boards, tags, statuses, and rankings;
@@ -23,6 +23,9 @@ Zingposts exposes that durable marketplace workspace as 110 structured WebMCP to
 - leave consequential actions—publication, notifications, messages, offers, and invitations—at an explicit human-confirmation gate;
 - make every action attributable and undo reversible work.
 - open a durable collaboration session, place a shortlist or focused question on the shared canvas, read the person’s response, and continue from it.
+- resume from an acknowledged workspace checkpoint, inspect structured blockers, and continue without replaying already-processed work;
+- prepare sourced, versioned change sets for selective human acceptance instead of making opaque batch edits;
+- record private listing outcomes and inspect transparent aggregate patterns without a model-generated score.
 
 The same state remains legible and editable in the human interface. Reasoning stays in the outside agent; Zingposts is the shared workspace and action surface.
 
@@ -43,13 +46,15 @@ The same state remains legible and editable in the human interface. Reasoning st
 - Supabase email-code authentication for verified people, with an editable email when a prototype workspace crosses the marketplace boundary
 - Separate 10-minute, single-use opaque invite URLs (with code fallback) and 12-hour revocable agent sessions for verified workspaces
 - Scoped, revocable agent profiles and preferences
-- 110 declarative WebMCP tools in the complete catalog, with a compact persistent core and one replaceable focused capability pack
-- One-call resume through `get_agent_bootstrap`, progressive discovery through `get_capability_index` and `get_capability_group`, navigation-independent `activate_capability`, and optional `open_for_human_review`
+- 121 declarative WebMCP tools in the complete catalog, with a compact persistent core and one replaceable focused capability pack
+- One-call bootstrap through `get_agent_bootstrap`, explicit incremental resume through `get_workspace_resume` and `acknowledge_workspace_checkpoint`, progressive discovery through `get_capability_index` and `get_capability_group`, navigation-independent `activate_capability`, and optional `open_for_human_review`
 - Immediate prototype-lane agent connection for discovery, organization, research, alerts, and drafts
 - A real verification boundary: Supabase authentication plus exact human confirmation before publishing or contacting marketplace participants
-- Eighteen public tools available before human sign-in for bootstrap, discovery, authentication, interpreted alerts, public search, and agent-first handoff
+- Exactly five setup tools before human sign-in; safe private workspace capabilities appear only after the person signs in
 - A human-facing **Shared with agent** area for durable shortlists, recommendations, questions, human responses, and resumable work sessions
 - Canonical server-derived agent identity, live activity, structured WebMCP error results, strict workflow enums, idempotent mutations, version-conflict protection, exact-action review, and stable deep links
+- Structured blockers plus sourced, versioned change sets with semantic previews and selective human application
+- Private listing outcomes and transparent aggregate patterns with sample-size disclosure and no generated score
 - Isolated QA namespaces with exact artifact preview and human-approved cleanup
 - Durable interface preferences, including a collapsible navigation rail, full-screen sequential listing review, and agent-controllable marketplace canvas modes
 - Resumable workspace inventory tools for owned drafts, boards, saved items, alerts, research notebooks, collaboration sessions, conversations, and trade rooms
@@ -83,7 +88,7 @@ npm run build -- --webpack
 
 With Supabase test credentials in the environment, `npm run test:human-auth` verifies that the legacy prototype cookie stops working after account upgrade and that a real Supabase session resumes the workspace. `npm run test:agent-auth` verifies single-use code and invite exchange, canonical server-derived identity and profile reuse, bootstrap, private workspace access, non-bypassable human approval, and immediate revocation.
 
-The smoke test uses its own workspace and QA namespace. It checks bootstrap, exact manifest coverage, capability activation without navigation, the Virginia sailboat alert regression, field-aware truck relevance, strict state enums, structured missing-record errors, optimistic concurrency, a human-agent response loop, consequential-action gates, and exact namespaced cleanup without executing marketplace commitments.
+The smoke test uses its own workspace and QA namespace. It checks bootstrap, explicit resume checkpoints, structured blockers, selective versioned proposals, outcome patterns, exact manifest coverage, capability activation without navigation, the Virginia sailboat alert regression, field-aware truck relevance, strict state enums, structured missing-record errors, optimistic concurrency, a human-agent response loop, consequential-action gates, and exact namespaced cleanup without executing marketplace commitments.
 
 ## WebMCP implementation
 
@@ -96,6 +101,8 @@ The bottom-right guide inspects the active tab rather than assuming WebMCP is co
 For selling, `list_my_listings` exposes unpublished drafts and `attach_listing_image_from_url` safely imports a user-permitted public image into the listing-media bucket, preserving source, attribution, accessible alt text, and an undo record. Owned drafts update immediately; the same tool converts a live-listing media change into an exact verification and one-time human-approval request so an agent cannot silently alter the public presentation.
 
 The collaboration group is the showcase loop: `start_collaboration_session` opens shared work, `add_collaboration_item` places a structured shortlist, question, recommendation, decision, or note on the canvas, `respond_to_collaboration_item` records human guidance, and `get_collaboration_session` lets the outside agent resume with that guidance. `get_human_attention_queue` keeps ordinary collaboration questions and consequential marketplace actions visible in one place. A clearly labeled sample handoff lets a judge experience the same durable records without pretending Zingposts contains a model.
+
+`get_workspace_resume` is the durable return protocol: it reports the prior acknowledged checkpoint, activity and human responses since that point, structured blockers, proposal and outcome changes, and safe next actions. `acknowledge_workspace_checkpoint` advances the cursor only after the agent has processed the batch. For coordinated edits, an agent can create and preview a sourced, versioned change set, while only a person can selectively apply or discard it. Listing outcomes remain private, and `get_outcome_patterns` reports transparent counts, prices, and reasons with explicit sample-size limitations rather than generating a recommendation score.
 
 The action layer in `lib/scoutboard-store.ts` enforces ownership, derives actor identity on the server, records attribution, and turns consequential requests into pending confirmation records. A prototype workspace can be upgraded only by opening the secure Supabase link sent to the real email address. From then on, deterministic-email and legacy-cookie access are disabled. The person returns through Supabase. An outside agent using that same signed-in browser can immediately perform safe private work, attributed as browser-delegated activity; no second login is required. A one-use invite or code creates a separate expiring, revocable agent session only when a different browser or unattended access is needed.
 

@@ -1,6 +1,6 @@
 # Zingposts demo script
 
-Target runtime: 2 minutes 40 seconds. Record with one outside agent connected to a WebMCP-capable browser.
+Target runtime: 2 minutes 50 seconds. Record with one outside agent connected to a WebMCP-capable browser.
 
 ## 0:00–0:18 — A marketplace, not a chatbot
 
@@ -20,24 +20,25 @@ Have the agent rediscover tools and call `get_agent_bootstrap`. Show the server-
 
 Briefly mention the reverse path: while signed out, an outside agent sees only five setup tools, calls `get_agent_bootstrap`, then `start_agent_onboarding`, and opens the returned handoff for the person. After sign-in it rediscovers the workspace tools.
 
-## 0:48–1:32 — The shared workbench
+## 0:48–1:38 — Resume, propose, decide
 
 Open **Shared with agent**.
 
 Ask the outside agent to:
 
-1. call `start_collaboration_session` with the objective “Choose a characterful old boat under $20,000”;
-2. search for boats and call `add_collaboration_item` with a three-listing recommendation, rationale, two or three options, and `requiresHumanResponse: true`.
+1. call `get_workspace_resume` and summarize what changed since its acknowledged checkpoint;
+2. call `get_work_and_blockers` and identify the one decision that needs the person;
+3. search for boats and create a sourced `change_set` containing a shortlist, board update, and research note.
 
-As the tool calls execute, point out the live agent activity pulse. Show the recommendation in the shared canvas with real listing cards.
+As the tool calls execute, point out the live agent activity pulse. Open the proposal card and show the plain-language preview, sources, expected versions, and checkboxes.
 
-“This is not a chat transcript. The agent has placed structured work on a durable marketplace canvas. It knows exactly when my judgment is needed.”
+“This is not a chat transcript or a blind batch action. The agent can return after a day, see exactly what changed, and prepare a versioned proposal. I decide which parts become shared state.”
 
-Choose an option and add one sentence of guidance. Then have the agent call `get_collaboration_session`.
+Uncheck one change and apply the rest. Show the resulting board and research note, then have the agent call `acknowledge_workspace_checkpoint` only after it has processed the response.
 
-Show that the returned result contains the exact human response and that the session moved from `waiting_human` to `waiting_agent`. Have the agent add a follow-up research note or update the session summary.
+Show that the next resume call returns no already-processed work. Briefly show `record_listing_outcome` on a listing and `get_outcome_patterns`: exact counts, prices, and reasons, with no opaque AI score.
 
-## 1:32–2:08 — Prepare freely, commit carefully
+## 1:38–2:16 — Prepare freely, commit carefully
 
 Ask the agent to draft a seller message based on the chosen boat and request that it be sent.
 
@@ -45,13 +46,13 @@ Ask the agent to draft a seller message based on the chosen boat and request tha
 
 Show the unified attention queue, then open **Review exact action**. Point out who prepared it, the recipient, the exact message, and the raw payload. Approve once or decline. Mention that even an authenticated agent supplying `confirmed: true` cannot bypass this separate human gate.
 
-## 2:08–2:30 — Trustworthy agent ergonomics
+## 2:16–2:40 — Trustworthy agent ergonomics
 
 Open the small **WebMCP tools** guide. Show the stable core, active capability pack, and the person’s independently visible page. Have the agent call `activate_capability` and show that the focused tools change without navigation or accumulation. Then show **Activity & undo** and undo one reversible action. The public agent guide is linked for judges.
 
-“The 110 tools use progressive discovery: one persistent bootstrap core plus one focused pack. Mutations support idempotency and versions, failures are structured, and human-review navigation stays optional.”
+“The 121 tools use progressive discovery: one persistent bootstrap core plus one focused pack. Resume state is checkpointed, blockers are structured, mutations support idempotency and versions, and human-review navigation stays optional.”
 
-## 2:30–2:40 — Close
+## 2:40–2:50 — Close
 
 Return to **Shared with agent**.
 

@@ -27,6 +27,10 @@ assert.equal(capabilities.supports.browserSessionAgentDelegation,true);
 assert.equal(capabilities.architecture.signedOutToolSurface,'setup-only');
 assert.equal(capabilities.supports.qaNamespaces,true);
 assert.equal(capabilities.supports.optimisticConcurrency,true);
+assert.equal(capabilities.supports.durableResumeCheckpoints,true);
+assert.equal(capabilities.supports.structuredBlockers,true);
+assert.equal(capabilities.supports.versionedChangeSets,true);
+assert.equal(capabilities.supports.transparentOutcomePatterns,true);
 assert.ok(capabilities.tools.includes('update_board'));
 assert.ok(capabilities.tools.includes('set_listing_status'));
 assert.ok(capabilities.tools.includes('request_qa_cleanup'));
@@ -45,6 +49,10 @@ assert.equal(bootstrap.canonicalAgent.name,'Browser agent via Zingposts QA runne
 assert.equal(bootstrap.canonicalAgent.access,'browser-delegated');
 assert.ok(bootstrap.workspace.counts);
 assert.ok(bootstrap.capabilities.groups.some(group=>group.id==='listing'));
+const firstResume=await action('get_workspace_resume');
+assert.equal(firstResume.acknowledgement.tool,'acknowledge_workspace_checkpoint');
+const checkpoint=await action('acknowledge_workspace_checkpoint',{processedThrough:firstResume.nextCheckpointCandidate});
+assert.equal(checkpoint.durable,true);
 
 const manifest=await action('get_webmcp_manifest',{activeCapability:'marketplace'});
 assert.equal(manifest.progressiveDiscovery.strategy,'persistent_core_plus_activated_capability');
@@ -88,6 +96,9 @@ assert.equal(staleBoard.response.status,409);assert.equal(staleBoard.body.error.
 
 const collaboration=await action('start_collaboration_session',{objective:'QA human-agent loop',listingIds:selectedIds,qaRunId:qa.qaRunId});
 const item=await action('add_collaboration_item',{sessionId:collaboration.sessionId,kind:'question',title:'Choose a lead',body:'Which item should we research first?',listingIds:selectedIds,options:['First','Second'],requiresHumanResponse:true,expectedVersion:collaboration.version,qaRunId:qa.qaRunId});
+const blockers=await action('get_work_and_blockers');
+const collaborationBlocker=blockers.workItems.find(work=>work.id===item.itemId);
+assert.equal(collaborationBlocker.requiresHuman,true);assert.ok(collaborationBlocker.blockedBy.includes('human_response'));assert.ok(Array.isArray(collaborationBlocker.agentCanContinueWith));
 const agentDecision=await request('respond_to_collaboration_item',{itemId:item.itemId,decision:'answered'});
 assert.equal(agentDecision.response.status,400);assert.equal(agentDecision.body.error.code,'HUMAN_REQUIRED');
 const invalidDecision=await request('respond_to_collaboration_item',{itemId:item.itemId,decision:'qa-reviewed'},{type:'human',name:'Ignored human label'});
@@ -95,7 +106,20 @@ assert.equal(invalidDecision.response.status,400);assert.equal(invalidDecision.b
 const response=await action('respond_to_collaboration_item',{itemId:item.itemId,decision:'answered',response:'Research the first item.',expectedVersion:item.version},{type:'human',name:'Ignored human label'});
 assert.equal(response.agentCanContinue,true);
 
+const proposal=await action('create_change_set',{title:`QA shortlist proposal ${runLabel}`,summary:'Review two private organization changes.',changes:[{action:'set_listing_status',input:{listingId:selectedIds[0],status:'researching'},rationale:'Needs deeper title research.'},{action:'tag_listings',input:{listingIds:selectedIds,tags:['qa-shortlist']},rationale:'Keep the candidates together.'}],sources:[{label:'QA evidence',url:'https://example.com/evidence'}],qaRunId:qa.qaRunId});
+assert.equal(proposal.status,'proposed');assert.equal(proposal.preview.length,2);assert.equal(proposal.humanReviewRequired,true);
+const agentApply=await request('apply_change_set',{changeSetId:proposal.changeSetId,selectedIndexes:[0],expectedVersion:proposal.version});
+assert.equal(agentApply.response.status,400);assert.equal(agentApply.body.error.code,'HUMAN_REQUIRED');
+const applied=await action('apply_change_set',{changeSetId:proposal.changeSetId,selectedIndexes:[0],expectedVersion:proposal.version},{type:'human',name:'Ignored human label'});
+assert.equal(applied.status,'applied');assert.deepEqual(applied.selectedIndexes,[0]);assert.deepEqual(applied.omittedIndexes,[1]);
+const resumed=await action('get_workspace_resume');
+assert.ok(resumed.counts.activities>0);assert.ok(resumed.changes.changeSets.some(changeSet=>changeSet.id===proposal.changeSetId));
+
 const listing=await action('create_listing_draft',{title:`QA listing ${runLabel}`,category:'Boats',price:1250,location:'Mechanicsville, VA',description:'Not actually for sale.',qaRunId:qa.qaRunId});
+const outcome=await action('record_listing_outcome',{listingId:listing.listingId,outcome:'passed',finalPrice:1150,reason:'Inspection risk',notes:'QA outcome only.',qaRunId:qa.qaRunId});
+assert.equal(outcome.outcome,'passed');
+const patterns=await action('get_outcome_patterns',{listingId:listing.listingId});
+assert.equal(patterns.sampleSize,1);assert.equal(patterns.outcomeCounts.passed,1);assert.equal(patterns.medianFinalPrice,1150);assert.ok(patterns.method.includes('no model-generated score'));
 const research=await action('record_price_comparable',{listingId:listing.listingId,title:'QA comparable',soldPrice:1100,sourceUrl:'https://example.com/comparable',sourceLabel:'Example archive',notes:'Schema and cleanup test.',qaRunId:qa.qaRunId});
 assert.equal(research.comparable.soldPrice,1100);
 const alert=await action('create_alert_draft',{name:`QA alert ${runLabel}`,query:'Virginia sailboats under $2,000',criteria:{},qaRunId:qa.qaRunId});
@@ -122,7 +146,7 @@ assert.equal(cleaned.status,'cleaned');assert.equal(cleaned.removed,preview.coun
 qaCleaned=true;
 const afterCleanup=await action('preview_qa_cleanup',{qaRunId:qa.qaRunId});assert.equal(afterCleanup.count,0);
 
-console.log(JSON.stringify({ok:true,seededListings:initial.listings.length,webmcpTools:capabilities.tools.length,signedOutSetupTools:guest.publicTools.length,signedOutMarketplaceBlocked:true,browserSessionDelegation:true,manifestUnique:true,bootstrap:true,guide:true,capabilityActivationWithoutNavigation:true,alertRegression:true,searchRelevance:true,structuredErrors:true,concurrency:true,qaCleanup:true,consequentialActionsExecuted:false},null,2));
+console.log(JSON.stringify({ok:true,seededListings:initial.listings.length,webmcpTools:capabilities.tools.length,signedOutSetupTools:guest.publicTools.length,signedOutMarketplaceBlocked:true,browserSessionDelegation:true,manifestUnique:true,bootstrap:true,durableResume:true,structuredBlockers:true,selectiveChangeSetReview:true,outcomePatterns:true,guide:true,capabilityActivationWithoutNavigation:true,alertRegression:true,searchRelevance:true,structuredErrors:true,concurrency:true,qaCleanup:true,consequentialActionsExecuted:false},null,2));
 } finally {
   if(!qaCleaned) await request('request_qa_cleanup',{qaRunId:qa.qaRunId,confirmed:true},{type:'human',name:'Zingposts QA cleanup'}).catch(()=>null);
 }

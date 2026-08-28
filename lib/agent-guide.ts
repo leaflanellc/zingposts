@@ -1,5 +1,5 @@
-export const AGENT_GUIDE_VERSION='2026-08-26.2';
-export const WEBMCP_TOOL_CONTRACT_VERSION='2026-08-26.7';
+export const AGENT_GUIDE_VERSION='2026-08-27.1';
+export const WEBMCP_TOOL_CONTRACT_VERSION='2026-08-27.1';
 
 export const AGENT_GUIDE={
   name:'Zingposts outside-agent guide',
@@ -21,6 +21,7 @@ export const AGENT_GUIDE={
   ],
   start:[
     'Call get_agent_bootstrap once. While signed out it returns only setup guidance. After the person signs in, rediscover tools and call it again to resume the workspace.',
+    'Call get_workspace_resume before creating new work. It returns changes since this agent’s durable checkpoint, structured blockers, proposals, and safe next actions.',
     'Call activate_capability when a focused typed tool pack is needed. Capability activation does not navigate or change the person’s screen.',
     'Use open_for_human_review only when showing the person a listing, board, session, conversation, alert, or trade would help collaboration.',
   ],
@@ -42,12 +43,13 @@ export const AGENT_GUIDE={
   },
   returnLater:[
     'Reopen Zingposts and rediscover the current WebMCP registry; do not rely on a cached catalog.',
-    'Call get_agent_bootstrap and resume from durable workspace identifiers and the attention queue.',
+    'Call get_agent_bootstrap, then get_workspace_resume. Acknowledge a new checkpoint only after the returned changes have been processed.',
     'If the person is signed out, ask them to sign in. Use a fresh invite or code only for unattended or separate-browser access.',
   ],
   skillStarter:[
     'Open the saved Zingposts URL and rediscover WebMCP tools.',
     'Call get_agent_bootstrap before changing state.',
+    'Call get_workspace_resume and process pending human responses, blockers, and proposed change sets before creating duplicates.',
     'Activate only the capability needed for the current objective.',
     'Use Zingposts records as durable truth and preserve citations in research.',
     'Leave consequential actions for exact human review.',

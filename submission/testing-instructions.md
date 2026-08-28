@@ -23,6 +23,10 @@
 ## Collaboration checks
 
 - Call `get_webmcp_manifest` and verify every tool appears exactly once in the persistent core or one capability group.
+- Call `get_workspace_resume`, acknowledge its returned checkpoint with `acknowledge_workspace_checkpoint`, and call resume again; verify already-processed activity is not replayed.
+- Call `get_work_and_blockers`; verify each item has structured `blockedBy`, `missingInputs`, `decisionNeeded`, `requiresHuman`, and `agentCanContinueWith` fields rather than forcing the agent to parse prose.
+- Create a sourced change set, preview its semantic changes, and try to apply it as an agent; verify the agent receives `HUMAN_REQUIRED`. As the person, select only some changes and verify only those changes apply. Change an underlying record first and verify a stale expected version produces a conflict.
+- Record a private listing outcome and call `get_outcome_patterns`; verify the response reports sample size, counts, prices, and reasons, explicitly avoids a model-generated score, and cautions on small samples.
 - Navigate through multiple human pages and verify the registered count stays bounded. Call `activate_capability` and verify the focused pack changes without navigating; call `open_for_human_review` and verify navigation does not change the active pack.
 - Open **Shared with agent** and click **Preview a sample handoff**. Verify that the sample is explicitly labeled, uses durable records, shows three real listings, and states that no AI runs inside Zingposts.
 - For the real loop, call `start_collaboration_session`, then `add_collaboration_item` with `requiresHumanResponse: true`. Respond in the workbench and call `get_collaboration_session`; verify the exact human decision and text are returned and the session moves to `waiting_agent`.
@@ -68,4 +72,4 @@ With Supabase test credentials in the environment, also run `npm run test:human-
 
 ## Expected automated result
 
-The smoke test prints `ok: true` with at least 12 seeded listings and confirms unique manifest coverage, bootstrap, guide delivery, capability activation without navigation, Virginia sailboat alert matching, truck relevance, strict state transitions, structured errors, optimistic concurrency, a human-agent loop, consequential gates, and namespaced cleanup. The auth tests separately prove required Supabase sessions, single-use code and invite exchange, canonical agent identity and profile reuse, revocation, and non-bypassable human approval.
+The smoke test prints `ok: true` with at least 12 seeded listings and confirms all 121 catalog tools, unique manifest coverage, bootstrap, durable resume checkpoints, structured blockers, selective change-set review, transparent outcome patterns, guide delivery, capability activation without navigation, Virginia sailboat alert matching, truck relevance, strict state transitions, structured errors, optimistic concurrency, a human-agent loop, consequential gates, and namespaced cleanup. The auth tests separately prove required Supabase sessions, single-use code and invite exchange, canonical agent identity and profile reuse, revocation, and non-bypassable human approval.
